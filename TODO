@@ -1,0 +1,21 @@
+
+To Do items 05/09/2018
+
+* Block diagram of funtional units, switches, pumps and valves in machine.
+* Determine if Blynk is a good fit for both Android and iOS
+* Determine different cleaning cycles
+* Improve load cell readings with averages and calibration
+* Build state machine for various brew cycles. 
+* Determine exit and error condtions from different cycles - water not hot enough, etc.
+* Formalize the API that I made.
+* Add basic manual control to app. 
+* Consider programmability.
+
+
+Open questions:
+
+* Does the heater work on the recirculation too?
+* Can we reduce grinding noise by adjusting the shaker speeds?
+* Where is the TDS meter located in the I/O?
+* Where is the water meter located in the I/O?
+
