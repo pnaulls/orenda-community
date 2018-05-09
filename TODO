@@ -1,6 +1,7 @@
 
 To Do items 05/09/2018
 
+* Add Makefile to use "particle" tool to upload, build and flash.
 * Block diagram of funtional units, switches, pumps and valves in machine.
 * Determine if Blynk is a good fit for both Android and iOS
 * Determine different cleaning cycles
