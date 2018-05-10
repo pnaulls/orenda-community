@@ -22,7 +22,7 @@ References
 
 The locations of these items may be subject to change
 
-Community FAQ:  
+Community FAQ:
 https://docs.google.com/document/d/1Ye3PjEkkDaWWTbqxILuNRVPRJwL5_8FpXfS1fb5Y1Qs/edit?usp=sharing
 
 Sofware/Hardware internals and prelimary design:
@@ -43,11 +43,21 @@ https://www.kickstarter.com/projects/auroma/auroma-coffee-science-machine-that-l
 Official Website:
 https://www.orendacoffee.com/
 
+Patent on brew process for the machine (lots of information here about the internals):
+https://patents.google.com/patent/US20170119195A1/
+
+Patent on grinding, Auroma's grinder patent:
+https://patents.google.com/patent/US20180055289A1/
+
 
 I want to help
 --------------
 
+Look at the TODO list:
+
+https://raw.githubusercontent.com/pnaulls/orenda-community/master/TODO
+
 Get in touch with me.  Peter Naulls <peter@chocky.org>
 
-In particular, I could used a skilled electrical engineer and people familiar with IoT and device control, and people willing to formally document coffee making processes.
+
 
