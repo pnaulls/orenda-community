@@ -37,6 +37,7 @@ typedef enum {
 
 Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
 
+//OneWire oneWire = OneWire(25);  // 1-wire signal on pin D4
 
 
 void yield(void) {};
@@ -73,11 +74,15 @@ void setup()
    	pinMode(heater, OUTPUT);
    	Particle.function("heater", heaterControl);
    	
+   	pinMode(recirc, OUTPUT);
+    Particle.function("recirculate", recircControl);
+   	
    	Particle.function("flushWater", flushWater);
-   	   	
    	Particle.function("powerOff", powerOff);   	
-   	   	
    	Particle.function("loadCell", loadCell);   	
+   	   
+   //	Particle.function("oneWire", oneWireControl);  	
+
    	   	
    	//pinMode(ledR, OUTPUT);
    	//pinMode(ledG, OUTPUT);
@@ -87,7 +92,8 @@ void setup()
    	//Particle.function("setNum", setNum);   	
    	
     Particle.function("strip", strip);  
-    Particle.function("getPulse", getPulse);      
+     
+    Particle.function("getPulse", getPulse);   
 
 	//Register all the Tinker functions
 	Particle.function("digitalread", tinkerDigitalRead);
@@ -380,6 +386,16 @@ int heaterControl(String command) {
 }
 
 
+int recircControl(String command) {
+    int power = parsePower(command);
+    
+    if (power == -1) return -1;
+    
+    digitalWrite(recirc, !power);
+    return 1;
+}
+
+
 /**
  * Flush system.
  * 
@@ -588,11 +604,89 @@ int strip(String command) {
 }
 
 
+#if 0
+int oneWireControl(String command) {
+    OneWire oneWire = OneWire(command.toInt());  // 1-wire signal on pin D4
+    
+    
+/*   unsigned long now = millis();
+  // change the 3000(ms) to change the operation frequency
+  // better yet, make it a variable!
+  if ((now - lastUpdate) < 3000) {
+    return;
+  }
+  lastUpdate = now;*/
+  byte i;
+  byte present = 0;
+  byte addr[8];
+
+  if (!oneWire.search(addr)) {
+    Serial.println("No more addresses.");
+    Serial.println();
+    oneWire.reset_search();
+    //delay(250);
+    return -1;
+  }
+
+  // if we get here we have a valid address in addr[]
+  // you can do what you like with it
+  // see the Temperature example for one way to use
+  // this basic code.
+
+  // this example just identifies a few chip types
+  // so first up, lets see what we have found
+
+  // the first ROM byte indicates which chip family
+  switch (addr[0]) {
+    case 0x10:
+      Serial.println("Chip = DS1820/DS18S20 Temp sensor");
+      break;
+    case 0x28:
+      Serial.println("Chip = DS18B20 Temp sensor");
+      break;
+    case 0x22:
+      Serial.println("Chip = DS1822 Temp sensor");
+      break;
+    case 0x26:
+      Serial.println("Chip = DS2438 Smart Batt Monitor");
+      break;
+    default:
+      Serial.println("Device type is unknown.");
+      // Just dumping addresses, show them all
+      //return;  // uncomment if you only want a known type
+  }
+
+  return addr[0];
+}
+
+#endif
+
+
+
 int getPulse(String command) {
+    int min = 1000000;
+    int max = 0;
+    int total = 0;
+    int runs = 64;
+    
     pinMode(P1S1, INPUT);
     
-    return pulseIn(P1S1, LOW);
+    for (int count = 0; count < runs; count++) {
+        int value = pulseIn(P1S1, HIGH);
+        
+        if (value < min) min = value;
+        if (value > max) max = value;
+        
+        total += value;
+    }
+    
+    String message = "min:" + String(min) + " max: " + String(max);
+    Particle.publish("TDS", message);
+    
+    return total / runs;
 }
+
+
 
 
 
