@@ -1,35 +1,9 @@
 // This #include statement was automatically added by the Particle IDE.
 #include <neopixel.h>
 
+#include "orenda.h"
 
-typedef enum {
-   fanPower     = 0,
-   recirc       = 1,   // Relay 1
-   brewButton   = 2,
-   relay2       = 4,   // Relay 2 - Relates to pump1.
-   
-   tempRes     = 10,
-   pump1       = 11,   // Reservoir
-   tempCir     = 12,   // Temperature in recirculation
-   motor1      = 13,
-   pump2       = 14,   // Top pump
-   heater      = 15,   // Relay 3
-   ledNP       = 16,   // LED 2/3 control, NeoPixel
-   buttonClean = 17,   
-   
-   ledR        = 21,   // LED 1 control
-   ledG        = 22, 
-   ledB        = 23,
-   
-   motor2      = 24,
-   analog4     = 25,
-   grinder     = 26,  // Grinder motor
-   pump3       = 27,  // Dispense or recirculate
-   
-   lcCLK       = 28,  // Load cell clock
-   lcDAT       = 29,  // Load cell data
- 
-} orendaPins;
+void yield(void){};
 
 
 #define PIXEL_COUNT 2
@@ -37,10 +11,6 @@ typedef enum {
 
 Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
 
-//OneWire oneWire = OneWire(25);  // 1-wire signal on pin D4
-
-
-void yield(void) {};
 
 
 /* Function prototypes -------------------------------------------------------*/
@@ -512,81 +482,7 @@ int powerOff(String command) {
 }*/
 
 
-void lcSetup(void) {
-    // Begin 
-    pinMode(lcCLK, OUTPUT);
-    pinMode(lcDAT, INPUT);
-    
-    // set_gain
-    digitalWrite(lcCLK, LOW);
-    lcRead();
-}
 
-
-bool lcIsReady(void) {
-	return digitalRead(lcDAT) == LOW;
-}
-
-
-/**
- * Read load cell.  
- * Taken from:
- * https://github.com/bogde/HX711/blob/master/HX711.cpp
- */
-
-long lcRead(void) {
-	// wait for the chip to become ready
-	while (!lcIsReady()) {
-		// Will do nothing on Arduino but prevent resets of ESP8266 (Watchdog Issue)
-		yield();
-	}
-
-    int GAIN = 1;
-
-	unsigned long value = 0;
-	uint8_t data[3] = { 0 };
-	uint8_t filler = 0x00;
-
-	// pulse the clock pin 24 times to read the data
-	data[2] = shiftIn(lcDAT, lcCLK, MSBFIRST);
-	data[1] = shiftIn(lcDAT, lcCLK, MSBFIRST);
-	data[0] = shiftIn(lcDAT, lcCLK, MSBFIRST);
-
-	// set the channel and the gain factor for the next reading using the clock pin
-	for (unsigned int i = 0; i < GAIN; i++) {
-		digitalWrite(lcCLK, HIGH);
-		digitalWrite(lcCLK, LOW);
-	}
-
-	// Replicate the most significant bit to pad out a 32-bit signed integer
-	if (data[2] & 0x80) {
-		filler = 0xFF;
-	} else {
-		filler = 0x00;
-	}
-
-	// Construct a 32-bit signed integer
-	value = (filler) << 24 | ((unsigned long)data[2] << 16) | ((unsigned long)data[1] << 8) | (unsigned long)data[0];
-
-	return (long)value;
-}
-
-
-int loadCell(String command) {
-    
-    double tare = 30454; // Empty
-    double full = 81400; // 350ml
-    
-    double value = lcRead();
-    
-    if (command == "raw") return value;
-    
-    value = value - tare;
-    
-    value = value / (full - tare) * 350;
-    
-    return value;
-}
 
 
 int strip(String command) {

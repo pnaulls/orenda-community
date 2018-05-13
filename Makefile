@@ -8,5 +8,5 @@ device := 350054001651363036373538
 all:
 	$(particle) compile p1 orenda --saveTo $(firmware)
 
-flash:
+flash:  $(firmware)
 	$(particle) flash $(device) $(firmware)
