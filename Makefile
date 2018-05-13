@@ -8,7 +8,7 @@ device := ${DEVICE_ID}
 all:
 	$(particle) compile p1 orenda --saveTo $(firmware)
 
-flash:
+flash:  $(firmware)
 ifeq ($(strip $(device)),)
 	@echo "DEVICE_ID environment variable not set"
 else
