@@ -35,3 +35,11 @@ void yield(void);
 void lcSetup(void);
 double loadCell(String command);
 int getTDS(String command);
+
+int parsePower(String power);
+
+
+
+void tinkerSetup(void);
+
+
