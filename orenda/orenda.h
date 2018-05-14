@@ -2,9 +2,9 @@
 
 typedef enum {
    fanPower     = 0,
-   recirc       = 1,   // Relay 1
+   recircBrew   = 1,   // Relay 1
    brewButton   = 2,
-   relay2       = 4,   // Relay 2 - Relates to pump1.
+   recircRes    = 4,   // Relay 2 - Relates to pump1.
    
    tempRes     = 10,
    pump1       = 11,   // Reservoir
@@ -20,7 +20,7 @@ typedef enum {
    ledB        = 23,
    
    motor2      = 24,
-   analog4     = 25,  // Possible TDS
+   tds         = 25,  // TDS frequency count
    grinder     = 26,  // Grinder motor
    pump3       = 27,  // Dispense or recirculate
    
@@ -34,3 +34,4 @@ void yield(void);
 
 void lcSetup(void);
 double loadCell(String command);
+int getTDS(String command);

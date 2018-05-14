@@ -6,7 +6,7 @@ firmware := firmware/orenda.bin
 device := ${DEVICE_ID}
 
 all:
-	$(particle) compile p1 orenda --saveTo $(firmware)
+	$(particle) -q compile p1 orenda --saveTo $(firmware)
 
 flash:  $(firmware)
 ifeq ($(strip $(device)),)
