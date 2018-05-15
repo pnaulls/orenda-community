@@ -4,7 +4,9 @@ typedef enum {
    fanPower     = 0,
    recircBrew   = 1,   // Relay 1
    brewButton   = 2,
+   chamberFull  = 3,
    recircRes    = 4,   // Relay 2 - Relates to pump1.
+   tdsEnable    = 5,
    
    tempRes     = 10,
    pump1       = 11,   // Reservoir
@@ -39,7 +41,7 @@ int getTDS(String command);
 int parsePower(String power);
 
 
-
+void tdsSetup(void);
 void tinkerSetup(void);
 
 

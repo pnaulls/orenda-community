@@ -12,18 +12,18 @@ void yield(void){};
 Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
 
 
-
-
-double tempReservoir;
-double tempCirculate;
-
+static double tempReservoir;
+static double tempCirculate;
+static bool chamberF;
 
 /* This function is called once at start up ----------------------------------*/
 void setup()
-{
+{    
     pinMode(fanPower, OUTPUT);
    	Particle.function("fan", fanControl);
-   	
+ 
+    pinMode(chamberFull, INPUT);
+    
    	pinMode(pump1, OUTPUT);
    	pinMode(pump2, OUTPUT);
    	pinMode(pump3, OUTPUT);
@@ -49,28 +49,20 @@ void setup()
    	   
    //	Particle.function("oneWire", oneWireControl);  	
 
-   	   	
-   	//pinMode(ledR, OUTPUT);
-   	//pinMode(ledG, OUTPUT);
-   	//pinMode(ledB, OUTPUT);
-   	//Particle.function("led", led);
-   	
-   	//Particle.function("setNum", setNum);   	
-   	
+ 	
     Particle.function("strip", strip);  
-     
-    pinMode(tds, INPUT);
-    Particle.function("tds", getTDS);   
+    ledStrip.begin();
+    ledStrip.show();
+    
+    tdsSetup();
     
     tinkerSetup();
     
-	Particle.variable("tempRes", tempReservoir);
-	Particle.variable("tempCir", tempCirculate);
-	
-	lcSetup();
-
-    ledStrip.begin();
-    ledStrip.show();
+    Particle.variable("tempRes", tempReservoir);
+    Particle.variable("tempCir", tempCirculate);
+    Particle.variable("chamberFull", chamberF);
+    
+    lcSetup();
 }
 
 
@@ -90,10 +82,11 @@ static double readTemp(orendaPins pin) {
 /* This function loops forever --------------------------------------------*/
 void loop()
 {
-	//This will run in a loop
+	// This will run in a loop
 	
 	tempReservoir = readTemp(tempRes);
 	tempCirculate = readTemp(tempCir);
+    chamberF      = digitalRead(chamberFull);
 	
 	delay(2000);
 }
@@ -110,25 +103,6 @@ int parsePower(String power) {
     return -1;
 }
 
-
-
-/*int setNum(String command) {
-    int num = command.toInt();
-    
-    pinMode(3, OUTPUT);
-	digitalWrite(3, (num & 0x1) != 0);
-    
-    pinMode(5, OUTPUT);
-	digitalWrite(5, (num & 0x2) != 0);
-	
-	pinMode(6, OUTPUT);
-	digitalWrite(6, (num & 0x4) != 0);
-	
-	pinMode(7, OUTPUT);
-	digitalWrite(7, (num & 0x8) != 0);
-    
-    return 1;
-}*/
 
 int fanControl(String command) {
     int power = parsePower(command);
@@ -209,14 +183,26 @@ int recircControl(String command) {
      return 1;
  }
 
+ 
+ /** 
+  * Pump control.  Pumps 1-3, 0,1 or high low.
+  * 
+  * Additionally, pump into the brew chamber can be PWM
+  * controlled. A third parameter is accepted from 0-255.
+  */ 
+ 
 
 int pumpControl(String command) {
-    int comma = command.indexOf(",");
+    int comma1 = command.indexOf(",");
     
-    if (comma == -1) return -1;
+    if (comma1 == -1) return -1;
     
-    String name = command.substring(0, comma);
-    String value = command.substring(comma + 1);
+    int comma2 = command.indexOf(",", comma1 + 1);
+    
+    String name = command.substring(0, comma1);
+    String value = (comma2 == -1) ? 
+                   command.substring(comma1 + 1) :
+                   command.substring(comma1 + 1, comma2);
     
     int pumpNum;
     
@@ -232,8 +218,22 @@ int pumpControl(String command) {
     int power = parsePower(value);
     
     if (power == -1) return -3;
+
+    // PWM control
+    if (comma2 != -1) {
+        if (pumpNum != pump2) return -4;
         
-    digitalWrite(pumpNum, power);
+        String pwm = command.substring(comma2 + 1);
+        int pValue = pwm.toInt();
+        
+        if (power)
+            analogWrite(pumpNum, pValue);
+        else
+            digitalWrite(pumpNum, power);
+    
+    } else {
+        digitalWrite(pumpNum, power);
+    }
     
     return 1;
 }
