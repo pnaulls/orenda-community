@@ -41,6 +41,7 @@ int getTDS(String command);
 int parsePower(String power);
 
 
+void ledSetup(void);
 void tdsSetup(void);
 void tinkerSetup(void);
 

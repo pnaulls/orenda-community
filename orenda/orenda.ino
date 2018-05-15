@@ -6,11 +6,6 @@
 void yield(void){};
 
 
-#define PIXEL_COUNT 2
-#define PIXEL_TYPE WS2812B
-
-Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
-
 
 static double tempReservoir;
 static double tempCirculate;
@@ -47,15 +42,8 @@ void setup()
    	Particle.function("powerOff", powerOff);   	
    	Particle.function("loadCell", loadCell);   	
    	   
-   //	Particle.function("oneWire", oneWireControl);  	
-
- 	
-    Particle.function("strip", strip);  
-    ledStrip.begin();
-    ledStrip.show();
-    
+    ledSetup();
     tdsSetup();
-    
     tinkerSetup();
     
     Particle.variable("tempRes", tempReservoir);
@@ -79,16 +67,16 @@ static double readTemp(orendaPins pin) {
 }
 
 
-/* This function loops forever --------------------------------------------*/
+/**
+ *  Main processing loop 
+ */
 void loop()
 {
-	// This will run in a loop
-	
-	tempReservoir = readTemp(tempRes);
-	tempCirculate = readTemp(tempCir);
+    tempReservoir = readTemp(tempRes);
+    tempCirculate = readTemp(tempCir);
     chamberF      = digitalRead(chamberFull);
-	
-	delay(2000);
+
+    delay(2000);
 }
 
 int parsePower(String power) {
@@ -271,8 +259,8 @@ int motorControl(String command) {
  */ 
 int powerOff(String command) {
     
-    // Turn off heater and pumps
-    flushWater("0");
+   // Turn off heater and pumps
+   flushWater("0");
     
     // Turn off motors
    digitalWrite(motor1, 0);
@@ -287,35 +275,9 @@ int powerOff(String command) {
 
 
 
-/*int led(String command) {
-    //return 0;
-    
-   RGB.control(true);
-
-   // red, green, blue, 0-255.
-   // the following sets the RGB LED to white:
-   RGB.color(255, 255, 255);
-
-  return 0;
-}*/
 
 
 
-
-
-int strip(String command) {
-
-    int col = command.toInt();    
-
-	ledStrip.setColor(0, 0, 0, 0);
-	//ledStrip.setColor(1, 0, 0xff, 0);
-	
-	ledStrip.setPixelColor(1, col);
-	
-	ledStrip.show();
-
-    return 0;
-}
 
 
 
