@@ -35,6 +35,7 @@ typedef enum {
 typedef enum {
    orendaIdle,
    orendaFlush,
+   orendaHeat,
    orendaBrew,
 } orendaRunState;
 
@@ -43,7 +44,7 @@ extern orendaRunState runState;
 
 void yield(void);
 
-int powerOff(String command);
+void powerDown(void);
 void heaterAndPumpsOff(void);
 
 void lcSetup(void);
@@ -52,6 +53,9 @@ int getTDS(String command);
 
 int parsePower(String power);
 
+
+void brewSetup(void);
+void brewHeat(bool chamberF, double tempReservoir);
 
 void ledSetup(void);
 void tdsSetup(void);

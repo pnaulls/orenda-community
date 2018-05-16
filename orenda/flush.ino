@@ -43,7 +43,7 @@ static int flushWater(String command) {
     
     // Stopping flush
     if (power == 0) {
-        powerOff("");
+        powerDown();
         return 1;
     }
     
@@ -113,7 +113,7 @@ void flushProcess(bool chamberF) {
       
       if (pump1Finished) {
          pump1Finished = false;
-         Particle.publish("flush/pump1", "water again");
+         Particle.publish("flush/pump1", "water again", 0, PRIVATE);
       }
       
   } else {
@@ -121,25 +121,25 @@ void flushProcess(bool chamberF) {
             
       if ((now - lastWater) > (40 * 1000)) {
          // Expired
-         Particle.publish("flush/pump1", "now finished");
+         Particle.publish("flush/pump1", "now finished", 0, PRIVATE);
          pump1Finished = true;
       }
   }
    
  
   
-  Particle.publish("flush/pump1", pump1Finished ? "finished" : "not finished");
+  Particle.publish("flush/pump1", pump1Finished ? "finished" : "not finished", 0, PRIVATE);
   digitalWrite(pump1, pump1Finished ? LOW : HIGH);
 
   // Run pump2 if we saw water in the last 40 seconds, and the load cell is not 
   // increasing
   
   if ((direction != lcDirectionUp) && (now - lastWater) < (40 * 1000)) {
-      Particle.publish("flush/on2/lastWater", String(now - lastWater)); 
+      //Particle.publish("flush/on2/lastWater", String(now - lastWater), 0, PRIVATE); 
       digitalWrite(pump2, HIGH);  
       lastPump2 = now;
   } else {
-      Particle.publish("flush/off2/lastWater", String(now - lastWater)); 
+      ///Particle.publish("flush/off2/lastWater", String(now - lastWater), 0, PRIVATE); 
       digitalWrite(pump2, LOW);   
   }    
   
@@ -148,7 +148,7 @@ void flushProcess(bool chamberF) {
   if (!chamberF && direction == lcDirectionEven && pump1Finished) {
      if (((now - lastEven) > 8000) && ((now - lastPump2) > 8000)) {
         Particle.publish("flush/finish", "flush complete");
-        powerOff("");
+        powerDown();
      }
   }
 }
