@@ -47,6 +47,8 @@ void yield(void);
 void powerDown(void);
 void heaterAndPumpsOff(void);
 
+bool heaterAction(bool on);
+
 void lcSetup(void);
 double loadCell(String command);
 int getTDS(String command);

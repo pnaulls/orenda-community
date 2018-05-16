@@ -137,7 +137,7 @@ int grinderControl(String command) {
  * Must be water in the chamber
  */ 
 
-static bool heaterAction(bool on) {
+bool heaterAction(bool on) {
     if (on) {
         if (!chamberFull) {
           return false;

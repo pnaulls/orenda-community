@@ -25,11 +25,26 @@ void brewSetup(void) {
 void brewHeat(bool chamberF, double temperature) {
     
     if (!chamberF) {
-       Particle.publish("heating", "water level low", 0, PRIVATE);
+       Particle.publish("heating", "waterLevelLow", 0, PRIVATE);
        powerDown();
        return;
     }
     
+    if (temperature < 94) {
+        // Not hot enough
+        heaterAction(true);  
+    } else if (temperature > 96) {
+        // Let cool off
+        heaterAction(false);
+    } else {
+        // Range achieved. 
+        heaterAction(false);
+        
+        double tempR = round(temperature * 10) / 10;
+        
+        Particle.publish("heating", "finished," + String(tempR), 0, PRIVATE);
+        runState = orendaIdle;
+    }
 }
 
 
