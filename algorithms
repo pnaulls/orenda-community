@@ -12,11 +12,13 @@ Flush Water
 
 Issues
  - We don't necessarily know how much liquid is in the brew chamber 
- - 1st and 2nd pumps can fill brew chamber faster than 3rd can empty
+ - 1st and 2nd pumps can fill brew chamber faster than 3rd can empty, although we
+   can run 2nd pump slower
  - You might need a large container 
- - Do we need to empty recirculation? 
+ - Do we need to empty recirculation? Probably not. 
  - Need user exit/stop condition, like button press
-
+ - Water meter in hidden chamber is high at 430 of 475ml.  
+ 
 Start:
 
   Consider current strain gauge reading as lowest
@@ -27,18 +29,30 @@ Start:
 Loop:
   If water level in reservoir is empty and the strain gauge is no longer decreasing exit 
 
+  If the water level marker is true, that means there's water in the chamber and 
+  may be water in the reservoir. 
+    Run pump 1 until marker is false
+  Otherwise
+    There might be some water in chambers and some in reservoir.  
+    Run pump 1 for up to 40 seconds to get a read. 
+    If it never gets a positive, don't run again. 
+    
+  Run pump (subject to logic below) for at least 35 seconds after we have a positive
+  water level read.  Adjust this according to speed of pumping.  Once this expires, don't run pump 2 again unless water level goes positve again. 
+  
+  
   Wait two seconds 
   Take strain gauge reading 
 
   if water level is not empty 
     If reading is lower
-      Start pumps 1, 2
+      Start pump 2 (subject to above)
     else if reading is similar 
       Leave running 
     else // Water level increasing
-      Stop pumps 1,2
+      Stop pumps 2
   else
-    stop pumps 1,2
+    stop pump 2
   endif
 
 Power off

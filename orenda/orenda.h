@@ -32,7 +32,19 @@ typedef enum {
 } orendaPins;
 
 
+typedef enum {
+   orendaIdle,
+   orendaFlush,
+   orendaBrew,
+} orendaRunState;
+
+
+extern orendaRunState runState;
+
 void yield(void);
+
+int powerOff(String command);
+void heaterAndPumpsOff(void);
 
 void lcSetup(void);
 double loadCell(String command);
@@ -44,5 +56,11 @@ int parsePower(String power);
 void ledSetup(void);
 void tdsSetup(void);
 void tinkerSetup(void);
+
+
+void flushSetup(void);
+void flushProcess(void);
+
+
 
 

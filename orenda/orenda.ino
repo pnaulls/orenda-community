@@ -11,6 +11,8 @@ static double tempReservoir;
 static double tempCirculate;
 static bool chamberF;
 
+orendaRunState runState = orendaIdle;
+
 /* This function is called once at start up ----------------------------------*/
 void setup()
 {    
@@ -38,10 +40,12 @@ void setup()
     pinMode(recircRes,  OUTPUT);
     Particle.function("recirculate", recircControl);
    	
-   	Particle.function("flushWater", flushWater);
+
    	Particle.function("powerOff", powerOff);   	
    	Particle.function("loadCell", loadCell);   	
    	   
+    flushSetup();
+    
     ledSetup();
     tdsSetup();
     tinkerSetup();
@@ -146,30 +150,6 @@ int recircControl(String command) {
 }
 
 
-/**
- * Flush system.
- * 
- * Turn off heater
- * 
- * Recirculate off
- * Run pump1, 2, 3.
- */
- 
- int flushWater(String command) {
-     int power = parsePower(command);
-    
-     if (power == -1) return -1;
-     
-     digitalWrite(heater, 0);  // Heater off
-     digitalWrite(recircBrew, 1);  // Recirculate brew chamber off
-     digitalWrite(recircRes,  1);      // Recirculate reservoir off
-     
-     digitalWrite(pump1, power);
-     digitalWrite(pump2, power);
-     digitalWrite(pump3, power);
-     
-     return 1;
- }
 
  
  /** 
@@ -250,8 +230,21 @@ int motorControl(String command) {
         
     digitalWrite(motorNum, power);
     
-    return 1;
+    return 1; 
 }  
+
+
+void heaterAndPumpsOff(void) {
+        
+    digitalWrite(heater, LOW);      // Heater off
+    digitalWrite(recircBrew, HIGH);  // Recirculate brew chamber off
+    digitalWrite(recircRes,  HIGH);  // Recirculate reservoir off
+     
+    digitalWrite(pump1, LOW);
+    digitalWrite(pump2, LOW);
+    digitalWrite(pump3, LOW);
+}
+
 
 
 /**
@@ -259,15 +252,17 @@ int motorControl(String command) {
  */ 
 int powerOff(String command) {
     
+   runState = orendaIdle;
+    
    // Turn off heater and pumps
-   flushWater("0");
+   heaterAndPumpsOff();
     
     // Turn off motors
-   digitalWrite(motor1, 0);
-   digitalWrite(motor2, 0);
+   digitalWrite(motor1, LOW);
+   digitalWrite(motor2, LOW);
    // Grinder and fan
-   digitalWrite(grinder, 0);
-   digitalWrite(fanPower, 0);
+   digitalWrite(grinder, LOW);
+   digitalWrite(fanPower, LOW);
    
    return 1;
 }

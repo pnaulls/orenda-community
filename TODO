@@ -1,9 +1,8 @@
 
 To Do items 05/09/2018
 
-* Add Makefile to use "particle" tool to upload, build and flash.
 * Block diagram of funtional units, switches, pumps and valves in machine.
-* Determine if Blynk is a good fit for both Android and iOS
+* Determine if Blynk is a good fit for both Android and iOS - No.
 * Determine different cleaning cycles
 * Improve load cell readings with averages and calibration
 * Build state machine for various brew cycles. 
@@ -15,8 +14,7 @@ To Do items 05/09/2018
 
 Open questions:
 
-* Does the heater work on the recirculation too?
+* Does the heater work on the recirculation too?  There's implication of a thermal exchange in the patent. 
 * Can we reduce grinding noise by adjusting the shaker speeds?
-* Where is the TDS meter located in the I/O?
-* Where is the water meter located in the I/O?
+
 
