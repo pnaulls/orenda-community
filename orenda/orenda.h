@@ -59,7 +59,7 @@ void tinkerSetup(void);
 
 
 void flushSetup(void);
-void flushProcess(void);
+void flushProcess(bool chamberF);
 
 
 

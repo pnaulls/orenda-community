@@ -80,6 +80,16 @@ void loop()
     tempCirculate = readTemp(tempCir);
     chamberF      = digitalRead(chamberFull);
 
+    switch (runState) {
+        case orendaIdle:
+            // Nothing
+            break;
+    
+        case orendaFlush:
+            flushProcess(chamberF);
+            break;
+    }
+            
     delay(2000);
 }
 

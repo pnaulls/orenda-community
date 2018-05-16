@@ -37,6 +37,7 @@ static int gain = 1;  // channel A, gain factor 128
 #define averageTimes 10
 
 
+
 static long lcRead(void) {
     // wait for the chip to become ready
     while (!lcIsReady()) {
@@ -90,6 +91,10 @@ bool lcIsReady(void) {
 
 
 
+/**
+ * TODO: Split this up into command vs processing
+ */ 
+
 double loadCell(String command) {
     bool setTare = (command == "tare");
 
@@ -105,13 +110,13 @@ double loadCell(String command) {
     
     if (setTare) {
       tare = value;
-      Particle.publish("loadCell/tare", String((int)value));
+      //Particle.publish("loadCell/tare", String((int)value));
     }
     
     value = value - tare;
     
     value = (value * 350.0) / threeFiftyReading; 
-    Particle.publish("loadCell", String(round(value * 10) / 10));
+    //Particle.publish("loadCell", String(round(value * 10) / 10));
     
 //    return value;
     return round(value * 10) / 10;
