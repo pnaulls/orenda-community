@@ -37,7 +37,20 @@ typedef enum {
    orendaFlush,
    orendaHeat,
    orendaBrew,
+   orendaMix,
 } orendaRunState;
+
+
+#define lcThreshold 10  
+
+typedef enum {
+  lcDirectionUnknown = 0,
+  lcDirectionDown    = 1,
+  lcDirectionEven    = 2,
+  lcDirectionUp      = 3,
+} lcDirection;
+
+
 
 
 extern orendaRunState runState;
@@ -50,7 +63,6 @@ void heaterAndPumpsOff(void);
 bool heaterAction(bool on);
 
 void lcSetup(void);
-double loadCell(String command);
 int getTDS(String command);
 
 int parsePower(String power);
@@ -65,8 +77,8 @@ void tinkerSetup(void);
 
 
 void flushSetup(void);
-void flushProcess(bool chamberF);
+void flushProcess(double lcValue, bool chamberF);
 
-
+long lcRead(bool setTare = false, bool raw = false);
 
 

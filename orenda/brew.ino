@@ -7,6 +7,9 @@
 #include "orenda.h"
 
 
+static orendaRunState nextBrewState;
+
+
 void brewSetup(void) {
       Particle.function("brew", brewControl);
 }
@@ -43,16 +46,45 @@ void brewHeat(bool chamberF, double temperature) {
         double tempR = round(temperature * 10) / 10;
         
         Particle.publish("heating", "finished," + String(tempR), 0, PRIVATE);
-        runState = orendaIdle;
+        runState = nextBrewState;
     }
 }
 
 
+/** 
+ * Pump the water over the coffee grounds. 
+ */ 
+
+void brewMix(double lcValue) {
+    
+}
+
+
+/** 
+ * Dispense to cup 
+ */ 
+
+void brewDispense(void) {
+    
+}
+
+
+
+
 static int brewControl(String command) {
     if (command == "heat") {
+        nextBrewState = orendaIdle;
+        runState = orendaHeat;
+        return 1;
+        
+    } else if (command == "simple") {
+        nextBrewState = orendaMix;
         runState = orendaHeat;
         return 1;
     }
     
     return -1;
 }
+
+
+

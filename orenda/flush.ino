@@ -12,15 +12,6 @@
 
 #include "orenda.h"
 
-#define lcThreshold 10  
-
-typedef enum {
-  lcDirectionUnknown = 0,
-  lcDirectionDown    = 1,
-  lcDirectionEven    = 2,
-  lcDirectionUp      = 3,
-} lcDirection;
-
 
 static bool neverSawWater = true; // Never saw the water marker
 static bool pump1Finished = false; // No more water from reservior
@@ -56,7 +47,7 @@ static int flushWater(String command) {
     runState = orendaFlush;
     direction = lcDirectionUnknown;
     
-    lcLastValue = loadCell("tare");
+    lcLastValue = lcRead(true);
     
     return 1;
 }
@@ -66,12 +57,8 @@ static int flushWater(String command) {
   * Called every 200ms during flush
   */ 
  
-void flushProcess(bool chamberF) {
+void flushProcess(double lcValue, bool chamberF) {
   unsigned int now = millis();
-  double lcValue = loadCell(""); 
-  
-  
-  
   
   Particle.publish("flush/chamber", chamberF ? "full" : "empty");
   

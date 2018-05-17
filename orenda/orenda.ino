@@ -43,22 +43,21 @@ void setup()
     Particle.function("recirculate", recircControl);
    	
 
-   	Particle.function("powerOff", powerOff);   	
-   	Particle.function("loadCell", loadCell);   	
-   	   
-    flushSetup();
+   	Particle.function("powerOff", powerOff);
     
+    flushSetup();    
     ledSetup();
     tdsSetup();
+    lcSetup();
+    brewSetup();
+    
     tinkerSetup();
     
     Particle.variable("tempRes", tempReservoir);
     Particle.variable("tempCir", tempCirculate);
     Particle.variable("chamberFull", chamberF);
     
-    lcSetup();
-    
-    brewSetup();
+  
 }
 
 
@@ -84,13 +83,22 @@ void loop()
     tempCirculate = readTemp(tempCir);
     chamberF      = digitalRead(chamberFull);
 
+    double lcValue = lcRead();
+    
+    // TODO: 
+    // Reduce polling during idle state, and turn 
+    // more things off.
+    // Calculate load cell direction here instead of in the
+    // flush handling. 
+    // Reduce 2 second delay to process more often. 
+    
     switch (runState) {
         case orendaIdle:
             // Nothing
             break;
     
         case orendaFlush:
-            flushProcess(chamberF);
+            flushProcess(lcValue, chamberF);
             break;
             
         case orendaHeat:

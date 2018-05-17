@@ -37,8 +37,26 @@ static int gain = 1;  // channel A, gain factor 128
 #define averageTimes 10
 
 
+void lcSetup(void) {
+    // Begin 
+    pinMode(lcCLK, OUTPUT);
+    pinMode(lcDAT, INPUT);
+    
+    // Set_gain
+    digitalWrite(lcCLK, LOW);
+    lcRead();
+    
+    Particle.function("loadCell", loadCell);   	
+}
 
-static long lcRead(void) {
+
+static bool lcIsReady(void) {
+    return digitalRead(lcDAT) == LOW;
+}
+
+
+
+static long lcReadSingle(void) {
     // wait for the chip to become ready
     while (!lcIsReady()) {
         // Will do nothing on Arduino but prevent resets of ESP8266 (Watchdog Issue)
@@ -74,42 +92,20 @@ static long lcRead(void) {
 }
 
 
-void lcSetup(void) {
-    // Begin 
-    pinMode(lcCLK, OUTPUT);
-    pinMode(lcDAT, INPUT);
-    
-    // set_gain
-    digitalWrite(lcCLK, LOW);
-    lcRead();
-}
 
-
-bool lcIsReady(void) {
-    return digitalRead(lcDAT) == LOW;
-}
-
-
-
-/**
- * TODO: Split this up into command vs processing
- */ 
-
-double loadCell(String command) {
-    bool setTare = (command == "tare");
-
+long lcRead(bool setTare, bool raw) {
     double total = 0;
     
     for (int reading = 0; reading < averageTimes; reading++) {
-      total += lcRead();
+        total += lcRead();
     }
     
     double value = total / averageTimes;
     
-    if (command == "raw") return value;
+    if (raw) return value;
     
     if (setTare) {
-      tare = value;
+        tare = value;
       //Particle.publish("loadCell/tare", String((int)value));
     }
     
@@ -118,8 +114,21 @@ double loadCell(String command) {
     value = (value * 350.0) / threeFiftyReading; 
     //Particle.publish("loadCell", String(round(value * 10) / 10));
     
-//    return value;
-    return round(value * 10) / 10;
+    return round(value * 10) / 10;  
+}
+
+
+
+
+/**
+ * Command processing
+ */ 
+
+static double loadCell(String command) {
+    bool setTare = (command == "tare");
+    bool raw = (command == "raw");
+    
+    return lcRead(setTare, raw);
 }
 
 
