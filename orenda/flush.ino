@@ -44,7 +44,7 @@ static int flushWater(String command) {
     neverSawWater = true;
     lastWater = lastEven = lastPump2 = millis();
      
-    runState = orendaFlush;
+    setState(orendaFlush);
     direction = lcDirectionUnknown;
     
     lcLastValue = lcRead(true);

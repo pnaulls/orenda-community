@@ -8,13 +8,42 @@
 
 
 static orendaRunState nextBrewState;
-static int targetMixWeight = 350;
-static int targetMixTime   = 40;
+
+static int targetFillTime       = 45;   // Max time to fill chamber
+static int targetMixWeight      = 350;  // Target weight in load cell
+static int targetMixTime        = 40;   // Max time to mix water with coffee
+static int targetDispenseTime   = 55;   // Max time to dispense
 static long brewTimer;
 
 
 void brewSetup(void) {
       Particle.function("brew", brewControl);
+}
+
+
+/** 
+ * Fill chamber
+ */
+
+void brewFill(bool chamberF) {
+    if (chamberF) {
+        digitalWrite(pump1, LOW);
+        setState(orendaHeat);
+        return;
+    }
+     
+    digitalWrite(pump1, HIGH);
+    
+    long now = millis();
+    
+    if (now - brewTimer >= (targetFillTime * 1000)) {
+        setState(orendaDispenseStart);
+        
+        Particle.publish("brew", "fill timeout: " + String(now - brewTimer), 0, PRIVATE);
+        digitalWrite(pump1, LOW);
+        setState(orendaIdle);
+        return;
+    }
 }
 
 
@@ -26,7 +55,6 @@ void brewSetup(void) {
  * Note that we can only run the heater when the water sensor says there is 
  * enough water, otherwise we risk damage and fire. 
  */ 
-
 
 void brewHeat(bool chamberF, double temperature) {
     
@@ -50,7 +78,7 @@ void brewHeat(bool chamberF, double temperature) {
         
         Particle.publish("heating", "finished," + String(tempR), 0, PRIVATE);
         
-        runState = nextBrewState;
+        setState(nextBrewState);
     }
 }
 
@@ -60,7 +88,7 @@ void brewMixStart() {
     lcRead(true);
     brewTimer = millis();
     
-    runState = orendaMix;
+    setState(orendaMix);
     
     // Start pump 2
     digitalWrite(pump2, HIGH);
@@ -74,9 +102,9 @@ void brewMixStart() {
 
 void brewMix(double lcValue) {
     if (lcValue >= targetMixWeight) {
-        runState = orendaDispense;
+        setState(orendaDispenseStart);
         
-        Particle.publish("brew", "mix complete", 0, PRIVATE);
+        Particle.publish("brew", "mix complete: " + String(lcValue), 0, PRIVATE);
         digitalWrite(pump2, LOW);
         return;
     }
@@ -85,21 +113,50 @@ void brewMix(double lcValue) {
     
     long now = millis();
     
-    if (now - brewTimer >= (targetMixTime * 40)) {
-        runState = orendaDispense;
+    if (now - brewTimer >= (targetMixTime * 1000)) {
+        setState(orendaDispenseStart);
         
-        Particle.publish("brew", "mix timeout", 0, PRIVATE);
+        Particle.publish("brew", "mix timeout: " + String(lcValue), 0, PRIVATE);
         digitalWrite(pump2, LOW);
     }
 }
+
 
 
 /** 
  * Dispense to cup 
  */ 
 
-void brewDispense(void) {
-    powerDown();   
+void brewDispenseStart(void) {
+    digitalWrite(recircBrew, HIGH);  // Recirculate brew chamber off
+    digitalWrite(pump3, HIGH);
+    
+    setState(orendaDispense);
+    
+    brewTimer = millis();
+}
+
+
+void brewDispense(double lcValue) {
+    if (lcValue <= 10) {
+        Particle.publish("brew", "dispense complete", 0, PRIVATE);
+        digitalWrite(pump3, LOW);   
+        setState(orendaIdle);
+        return;
+    }
+    
+    // TODO: Also check that weight is decreasing
+    
+    long now = millis();
+    
+    if (now - brewTimer >= (targetDispenseTime * 1000)) {
+        setState(orendaDispenseStart);
+        
+        Particle.publish("brew", "dispense timeout: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);
+        digitalWrite(pump3, LOW);
+        setState(orendaIdle);
+        return;
+    }
 }
 
 
@@ -107,14 +164,16 @@ void brewDispense(void) {
 
 static int brewControl(String command) {
     
+    brewTimer = millis();
+    
     if (command == "heat") {
         nextBrewState = orendaIdle;
-        runState = orendaHeat;
+        setState(orendaFillChamber);
         return 1;
         
     } else if (command == "simple") {
         nextBrewState = orendaMixStart;
-        runState = orendaHeat;
+        setState(orendaFillChamber);
         return 1;
     }
     

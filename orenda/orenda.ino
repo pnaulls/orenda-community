@@ -56,9 +56,52 @@ void setup()
     Particle.variable("tempRes", tempReservoir);
     Particle.variable("tempCir", tempCirculate);
     Particle.variable("chamberFull", chamberF);
-    
-  
 }
+
+ 
+static String getStateName(orendaRunState state) {
+    switch (state) {
+        case orendaIdle:
+            return "idle";
+    
+        case orendaFlush:
+            return "flush";
+            
+        case orendaFillChamber:
+            return "fill chamber";
+            
+        case orendaHeat:
+            return "heat";
+            
+        case orendaMixStart:
+            return "mix start";
+            
+        case orendaMix:
+            return "mix";
+            
+        case orendaDispenseStart:
+            return "dispense start";
+            
+        case orendaDispense:
+            return "dispense";
+    }
+    
+    return "unknown";
+}
+
+
+void setState(orendaRunState state) {
+    if (state == runState) return;  
+    
+    runState = state;
+  
+    if (state == orendaIdle) {
+        powerDown();
+    }
+    
+    Particle.publish("orenda/state", getStateName(runState), 0, PRIVATE);
+}
+
 
 
 static double readTemp(orendaPins pin) {
@@ -101,6 +144,10 @@ void loop()
             flushProcess(lcValue, chamberF);
             break;
             
+        case orendaFillChamber:
+            brewFill(chamberF);
+            break;
+            
         case orendaHeat:
             brewHeat(chamberF, tempReservoir);
             break;
@@ -113,8 +160,11 @@ void loop()
             brewMix(lcValue);
             break;
             
+        case orendaDispenseStart:
+            brewDispenseStart();
+            
         case orendaDispense:
-            brewDispense();
+            brewDispense(lcValue);
             break;
     }
             
@@ -325,11 +375,6 @@ int powerOff(String command) {
    
     return 1;
 }
-
-
-
-
-
 
 
 

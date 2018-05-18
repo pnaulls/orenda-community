@@ -35,9 +35,11 @@ typedef enum {
 typedef enum {
    orendaIdle,
    orendaFlush,
+   orendaFillChamber,
    orendaHeat,
    orendaMixStart,
    orendaMix,
+   orendaDispenseStart,
    orendaDispense,
 } orendaRunState;
 
@@ -52,9 +54,7 @@ typedef enum {
 } lcDirection;
 
 
-
-
-extern orendaRunState runState;
+void setState(orendaRunState state);
 
 void yield(void);
 
@@ -70,10 +70,13 @@ int parsePower(String power);
 
 
 void brewSetup(void);
+
+void brewFill(bool chamberF);
 void brewHeat(bool chamberF, double tempReservoir);
 void brewMixStart();
 void brewMix(double lcValue);
-void brewDispense(void);
+void brewDispenseStart(void);
+void brewDispense(double lcValue);
 
 void ledSetup(void);
 void tdsSetup(void);
