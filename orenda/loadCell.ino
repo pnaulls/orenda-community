@@ -97,7 +97,7 @@ long lcRead(bool setTare, bool raw) {
     double total = 0;
     
     for (int reading = 0; reading < averageTimes; reading++) {
-        total += lcRead();
+        total += lcReadSingle();
     }
     
     double value = total / averageTimes;

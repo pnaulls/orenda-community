@@ -8,6 +8,9 @@
 
 
 static orendaRunState nextBrewState;
+static int targetMixWeight = 350;
+static int targetMixTime   = 40;
+static long brewTimer;
 
 
 void brewSetup(void) {
@@ -46,9 +49,23 @@ void brewHeat(bool chamberF, double temperature) {
         double tempR = round(temperature * 10) / 10;
         
         Particle.publish("heating", "finished," + String(tempR), 0, PRIVATE);
+        
         runState = nextBrewState;
     }
 }
+
+
+void brewMixStart() {
+    // Tare before mixing
+    lcRead(true);
+    brewTimer = millis();
+    
+    runState = orendaMix;
+    
+    // Start pump 2
+    digitalWrite(pump2, HIGH);
+}
+
 
 
 /** 
@@ -56,7 +73,24 @@ void brewHeat(bool chamberF, double temperature) {
  */ 
 
 void brewMix(double lcValue) {
+    if (lcValue >= targetMixWeight) {
+        runState = orendaDispense;
+        
+        Particle.publish("brew", "mix complete", 0, PRIVATE);
+        digitalWrite(pump2, LOW);
+        return;
+    }
     
+    // TODO: Also check that weight is increasing
+    
+    long now = millis();
+    
+    if (now - brewTimer >= (targetMixTime * 40)) {
+        runState = orendaDispense;
+        
+        Particle.publish("brew", "mix timeout", 0, PRIVATE);
+        digitalWrite(pump2, LOW);
+    }
 }
 
 
@@ -65,20 +99,21 @@ void brewMix(double lcValue) {
  */ 
 
 void brewDispense(void) {
-    
+    powerDown();   
 }
 
 
 
 
 static int brewControl(String command) {
+    
     if (command == "heat") {
         nextBrewState = orendaIdle;
         runState = orendaHeat;
         return 1;
         
     } else if (command == "simple") {
-        nextBrewState = orendaMix;
+        nextBrewState = orendaMixStart;
         runState = orendaHeat;
         return 1;
     }

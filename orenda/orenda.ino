@@ -104,6 +104,18 @@ void loop()
         case orendaHeat:
             brewHeat(chamberF, tempReservoir);
             break;
+            
+        case orendaMixStart:
+            brewMixStart();
+            break;
+            
+        case orendaMix:
+            brewMix(lcValue);
+            break;
+            
+        case orendaDispense:
+            brewDispense();
+            break;
     }
             
     delay(2000);
