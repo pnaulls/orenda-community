@@ -11,7 +11,7 @@ static orendaRunState nextBrewState;
 
 static int targetFillTime       = 45;   // Max time to fill chamber
 static int targetMixWeight      = 350;  // Target weight in load cell
-static int targetMixTime        = 40;   // Max time to mix water with coffee
+static int targetMixTime        = 90;   // Max time to mix water with coffee
 static int targetDispenseTime   = 55;   // Max time to dispense
 static long brewTimer;
 
@@ -101,22 +101,23 @@ void brewMixStart() {
  */ 
 
 void brewMix(double lcValue) {
+    unsigned long now = millis();
+    unsigned long elapsed = now - brewTimer;
+    
     if (lcValue >= targetMixWeight) {
         setState(orendaDispenseStart);
         
-        Particle.publish("brew", "mix complete: " + String(lcValue), 0, PRIVATE);
+        Particle.publish("brew", "mix complete: " + String(lcValue) + " " + String(elapsed), 0, PRIVATE);
         digitalWrite(pump2, LOW);
         return;
     }
     
     // TODO: Also check that weight is increasing
     
-    long now = millis();
-    
-    if (now - brewTimer >= (targetMixTime * 1000)) {
+    if (elapsed >= (targetMixTime * 1000)) {
         setState(orendaDispenseStart);
         
-        Particle.publish("brew", "mix timeout: " + String(lcValue), 0, PRIVATE);
+        Particle.publish("brew", "mix timeout: " + String(lcValue) + " " + String(elapsed), 0, PRIVATE);
         digitalWrite(pump2, LOW);
     }
 }

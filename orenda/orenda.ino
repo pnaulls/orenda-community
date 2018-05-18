@@ -13,6 +13,8 @@ static bool chamberF;
 
 orendaRunState runState = orendaIdle;
 
+static unsigned long lastLoop;
+
 /* This function is called once at start up ----------------------------------*/
 void setup()
 {    
@@ -56,6 +58,8 @@ void setup()
     Particle.variable("tempRes", tempReservoir);
     Particle.variable("tempCir", tempCirculate);
     Particle.variable("chamberFull", chamberF);
+    
+    lastLoop = millis();
 }
 
  
@@ -117,16 +121,29 @@ static double readTemp(orendaPins pin) {
 }
 
 
+
+
 /**
  *  Main processing loop 
  */
 void loop()
 {
-    tempReservoir = readTemp(tempRes);
-    tempCirculate = readTemp(tempCir);
-    chamberF      = digitalRead(chamberFull);
-
-    double lcValue = lcRead();
+    int freq = (runState == orendaIdle) ? 10000 : 200;
+    unsigned long now = millis();
+    double lcValue;
+    
+    if (now - lastLoop > freq) {
+        tempReservoir = readTemp(tempRes);
+        tempCirculate = readTemp(tempCir);
+        chamberF      = digitalRead(chamberFull);
+       
+    }
+    
+    if (runState == orendaIdle) {
+        return;
+    }
+    
+    lcValue = lcRead();
     
     // TODO: 
     // Reduce polling during idle state, and turn 
@@ -168,7 +185,7 @@ void loop()
             break;
     }
             
-    delay(2000);
+    delay(200);
 }
 
 int parsePower(String power) {
