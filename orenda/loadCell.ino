@@ -23,15 +23,22 @@
 
 /* Nominal readings taken during testing:
  * 
- *  double tare = 30454; // Empty
- *  double full = 81400; // 350ml
+ *  double tare = 30454 - Empty
+ *  double full = 81400 - 350ml
  *  So 350ml = 50946, 1ml = 145.56
+ * 
+ *  Gain values:
+ *  1 - channel A, gain factor 128
+ *  2 - channel B, gain factor 32
+ *  3 - channel C, gain factor 64
  */
- 
 
-static double tare              = 30545;
-static double threeFiftyReading = 50946;
-static int gain = 1;  // channel A, gain factor 128
+
+static double baseTare;
+static double tare;
+static double fourFiftyReading;
+static int gain = 3;  // channel A, gain factor 128
+
 
 // Sample code suggests 5-20 times to get an average reading
 #define averageTimes 10
@@ -41,6 +48,16 @@ void lcSetup(void) {
     // Begin 
     pinMode(lcCLK, OUTPUT);
     pinMode(lcDAT, INPUT);
+    
+    if (gain == 1) {
+        baseTare         = 29369;
+        fourFiftyReading = 73903; 
+    } else if (gain == 3) {
+        baseTare         = 12983;
+        fourFiftyReading = 34740;
+    }
+    
+    tare = baseTare;
     
     // Set_gain
     digitalWrite(lcCLK, LOW);
@@ -111,7 +128,7 @@ long lcRead(bool setTare, bool raw) {
     
     value = value - tare;
     
-    value = (value * 350.0) / threeFiftyReading; 
+    value = (value * 450.0) / (fourFiftyReading - baseTare); 
     //Particle.publish("loadCell", String(round(value * 10) / 10));
     
     return round(value * 10) / 10;  
