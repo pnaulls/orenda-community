@@ -40,8 +40,9 @@ static double fourFiftyReading;
 static int gain = 3;  // channel A, gain factor 128
 
 
-// Sample code suggests 5-20 times to get an average reading
-#define averageTimes 10
+// Sample code suggests 5-20 times to get an average reading,
+// although we do a median
+#define numReads 9
 
 
 void lcSetup(void) {
@@ -109,15 +110,37 @@ static long lcReadSingle(void) {
 }
 
 
+/** 
+ * Take a median of a given number of reads.
+ * 
+ * This will filter out any occasional bad reads.
+ */
+
 
 long lcRead(bool setTare, bool raw) {
-    double total = 0;
+    double readings[numReads];
     
-    for (int reading = 0; reading < averageTimes; reading++) {
-        total += lcReadSingle();
+    for (int reading = 0; reading < numReads; reading++) {
+        double lcValue = lcReadSingle();
+        bool shifted = false;
+
+        // Low to high, shift values if this value is less than
+        // Current one
+        for (int check = 0; check < reading; check++) {
+           if (lcValue >= readings[check]) continue;
+           
+           for (int move = reading; move > check; move--) {
+              readings[move] = readings[move - 1];   
+           }
+           readings[check] = lcValue;
+           shifted = true;
+           break;
+        }
+        
+        if (!shifted) readings[reading] = lcValue;
     }
     
-    double value = total / averageTimes;
+    double value = readings[numReads / 2 + 1]; // Middle reading
     
     if (raw) return value;
     

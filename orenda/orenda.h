@@ -75,7 +75,7 @@ void brewFill(bool chamberF);
 void brewHeat(bool chamberF, double tempReservoir);
 void brewMixStart();
 void brewMix(double lcValue);
-void brewDispenseStart(void);
+void brewDispenseStart(orendaRunState nextState);
 void brewDispense(double lcValue);
 
 void ledSetup(void);

@@ -128,7 +128,7 @@ static double readTemp(orendaPins pin) {
  */
 void loop()
 {
-    int freq = (runState == orendaIdle) ? 10000 : 200;
+    int freq = (runState == orendaIdle) ? 10000 : 2000;
     unsigned long now = millis();
     double lcValue;
     
@@ -178,7 +178,9 @@ void loop()
             break;
             
         case orendaDispenseStart:
-            brewDispenseStart();
+//            brewDispenseStart(orendaIdle);
+            brewDispenseStart(orendaDispense);
+            break;
             
         case orendaDispense:
             brewDispense(lcValue);
@@ -247,7 +249,7 @@ int heaterControl(String command) {
 
 
 int recircControl(String command) {
-     int comma = command.indexOf(",");
+    int comma = command.indexOf(",");
     
     if (comma == -1) return -1;
     

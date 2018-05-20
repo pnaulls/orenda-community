@@ -9,10 +9,45 @@
 
 static orendaRunState nextBrewState;
 
-static int targetFillTime       = 45;   // Max time to fill chamber
-static int targetMixWeight      = 350;  // Target weight in load cell
-static int targetMixTime        = 90;   // Max time to mix water with coffee
-static int targetDispenseTime   = 55;   // Max time to dispense
+/**
+ * 
+ * Fill rates:
+ * 
+ * Pump 1:   
+ *   Sensor at 40 seconds, room temperature
+ *     10.8 ml/second
+ *
+ * Pump 2:
+ *   350 ml at 28 seconds, room temperature
+ *       12.5 ml/second
+ *     58.3 seconds, when heated
+ *       6 ml/second
+ *   
+ */
+ 
+
+// Fill times for each pump 
+// Room temperature = 21C, hot = 95C
+
+// Heating chamber - 430ml (to sensor)
+static const int pump1room = 40;
+static const int pump1hot  = 60;
+
+// Brew/Mix chamber - 350ml 
+static const int pump2room = 28;
+static const int pump2hot  = 60;
+static int targetMixWeight  = 350;  // Target weight in load cell
+
+// Dispense - 350ml
+static const int pump3room = 50;
+static const int pump3hot  = 50;
+
+
+// Calculated times depending upon temperature
+static int pump1time;
+static int pump2time;
+static int pump3time;
+
 static long brewTimer;
 
 
@@ -36,7 +71,7 @@ void brewFill(bool chamberF) {
     
     long now = millis();
     
-    if (now - brewTimer >= (targetFillTime * 1000)) {
+    if (now - brewTimer >= (pump1time * 1000)) {
         setState(orendaDispenseStart);
         
         Particle.publish("brew", "fill timeout: " + String(now - brewTimer), 0, PRIVATE);
@@ -114,7 +149,7 @@ void brewMix(double lcValue) {
     
     // TODO: Also check that weight is increasing
     
-    if (elapsed >= (targetMixTime * 1000)) {
+    if (elapsed >= (pump2time * 1000)) {
         setState(orendaDispenseStart);
         
         Particle.publish("brew", "mix timeout: " + String(lcValue) + " " + String(elapsed), 0, PRIVATE);
@@ -128,17 +163,21 @@ void brewMix(double lcValue) {
  * Dispense to cup 
  */ 
 
-void brewDispenseStart(void) {
+void brewDispenseStart(orendaRunState nextState) {
     digitalWrite(recircBrew, HIGH);  // Recirculate brew chamber off
     digitalWrite(pump3, HIGH);
     
-    setState(orendaDispense);
+    setState(nextState);
     
     brewTimer = millis();
 }
 
 
 void brewDispense(double lcValue) {
+
+    long now = millis();
+    Particle.publish("brew", "dispense: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);
+    
     if (lcValue <= 10) {
         Particle.publish("brew", "dispense complete", 0, PRIVATE);
         digitalWrite(pump3, LOW);   
@@ -148,11 +187,9 @@ void brewDispense(double lcValue) {
     
     // TODO: Also check that weight is decreasing
     
-    long now = millis();
+   
     
-    if (now - brewTimer >= (targetDispenseTime * 1000)) {
-        setState(orendaDispenseStart);
-        
+    if (now - brewTimer >= (pump3time * 1000)) {
         Particle.publish("brew", "dispense timeout: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);
         digitalWrite(pump3, LOW);
         setState(orendaIdle);
@@ -164,8 +201,36 @@ void brewDispense(double lcValue) {
 
 
 static int brewControl(String command) {
+    int comma = command.indexOf(",");
+    String brewOp;
+    unsigned int size = 350;
+    
+    if (comma == -1) {
+        brewOp = command;
+    } else {
+        brewOp = command.substring(0, comma);
+        
+        String sizeCommand = command.substring(comma + 1);
+        if (sizeCommand.substring(0, 5) == "size=") {
+            size = sizeCommand.substring(6).toInt();
+            
+            if (size < 100 || size > 350) {
+                return -1;
+            }            
+        }
+    }
+    
     
     brewTimer = millis();
+    
+    // Proportion of nominal 350ml cup.
+    double proportion = (double)size / 350.0;
+    
+    pump1time = pump1hot; 
+    pump2time = pump2hot * proportion;
+    pump3time = pump3hot * proportion;
+    
+    targetMixWeight = size;
     
     if (command == "heat") {
         nextBrewState = orendaIdle;
@@ -176,7 +241,12 @@ static int brewControl(String command) {
         nextBrewState = orendaMixStart;
         setState(orendaFillChamber);
         return 1;
+        
+    } else if (command == "dispense") {
+        brewDispenseStart(orendaDispense);
+        return 1;
     }
+    
     
     return -1;
 }
