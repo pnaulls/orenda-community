@@ -167,6 +167,9 @@ void brewDispenseStart(orendaRunState nextState) {
     digitalWrite(recircBrew, HIGH);  // Recirculate brew chamber off
     digitalWrite(pump3, HIGH);
     
+    // Load cell varies by temperature.  Reset here.
+    //lcSetTare(targetMixWeight);
+    
     setState(nextState);
     
     brewTimer = millis();
@@ -212,10 +215,10 @@ static int brewControl(String command) {
         
         String sizeCommand = command.substring(comma + 1);
         if (sizeCommand.substring(0, 5) == "size=") {
-            size = sizeCommand.substring(6).toInt();
+            size = sizeCommand.substring(5).toInt();
             
             if (size < 100 || size > 350) {
-                return -1;
+                return -2;
             }            
         }
     }
@@ -232,17 +235,17 @@ static int brewControl(String command) {
     
     targetMixWeight = size;
     
-    if (command == "heat") {
+    if (brewOp == "heat") {
         nextBrewState = orendaIdle;
         setState(orendaFillChamber);
         return 1;
         
-    } else if (command == "simple") {
+    } else if (brewOp == "simple") {
         nextBrewState = orendaMixStart;
         setState(orendaFillChamber);
         return 1;
         
-    } else if (command == "dispense") {
+    } else if (brewOp == "dispense") {
         brewDispenseStart(orendaDispense);
         return 1;
     }

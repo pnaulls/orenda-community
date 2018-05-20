@@ -178,8 +178,8 @@ void loop()
             break;
             
         case orendaDispenseStart:
-//            brewDispenseStart(orendaIdle);
-            brewDispenseStart(orendaDispense);
+            brewDispenseStart(orendaIdle);
+//            brewDispenseStart(orendaDispense);
             break;
             
         case orendaDispense:
@@ -394,17 +394,6 @@ int powerOff(String command) {
    
     return 1;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

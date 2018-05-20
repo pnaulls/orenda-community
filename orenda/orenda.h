@@ -63,7 +63,7 @@ void heaterAndPumpsOff(void);
 
 bool heaterAction(bool on);
 
-void lcSetup(void);
+
 int getTDS(String command);
 
 int parsePower(String power);
@@ -86,6 +86,8 @@ void tinkerSetup(void);
 void flushSetup(void);
 void flushProcess(double lcValue, bool chamberF);
 
+void lcSetup(void);
+void lcSetTare(double tareValue = 0.0);
 long lcRead(bool setTare = false, bool raw = false);
 
 

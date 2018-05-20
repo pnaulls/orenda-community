@@ -42,7 +42,7 @@ static int gain = 3;  // channel A, gain factor 128
 
 // Sample code suggests 5-20 times to get an average reading,
 // although we do a median
-#define numReads 9
+#define numReads 11
 
 
 void lcSetup(void) {
@@ -110,6 +110,13 @@ static long lcReadSingle(void) {
 }
 
 
+void lcSetTare(double tareValue) {
+   double newTare = (tareValue / 450.0) * (fourFiftyReading - baseTare); 
+   
+   tare = newTare;
+}
+
+
 /** 
  * Take a median of a given number of reads.
  * 
@@ -140,7 +147,9 @@ long lcRead(bool setTare, bool raw) {
         if (!shifted) readings[reading] = lcValue;
     }
     
-    double value = readings[numReads / 2 + 1]; // Middle reading
+    int middle = numReads / 2 + 1;  
+    // Middle 3 readings
+    double value = (readings[middle - 1] + readings[middle] + readings[middle + 1]) / 3;
     
     if (raw) return value;
     
