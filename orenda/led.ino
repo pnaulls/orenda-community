@@ -15,26 +15,60 @@
 static Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
 
 
+int ledSetColor(unsigned int led, int col) {
+   
+  if (led == 0) {
+    // System LED
+        
+    if (col == -1) {
+      // Return to system
+      RGB.control(false);
+         
+    } else {
+      RGB.control(true);
+      RGB.color(col >> 16, (col >> 8) & 0xff, col & 0xff);
+    }
+        
+  } else if (led == 1 || led == 2) {
+    ledStrip.setPixelColor(led - 1, col);
+    ledStrip.show();
+        
+  } else {
+    return -2;
+  }
+    
+  return 0;  
+}
+
+
 
 static int setColor(String command) {
-    int col = command.toInt();    
-
-    ledStrip.setColor(0, 0, 0, 0);
-    //ledStrip.setColor(1, 0, 0xff, 0);
+    int comma = command.indexOf(",");
     
-    ledStrip.setPixelColor(1, col);
+    if (comma == -1) return -1;
     
-    ledStrip.show();
+    String lNum  = command.substring(0, comma);
+    String value = command.substring(comma + 1);
 
-    return 0;
+    int led = lNum.toInt();    
+    int col;
+    
+    if (value.substring(0, 2) == "0x") {
+      col = parseHex(value);
+    } else {
+      col = value.toInt();    
+    }
+
+    return ledSetColor(led, col);
 }
 
 
 void ledSetup(void) {
     Particle.function("setLEDs", setColor);  
-    ledStrip.begin();
+    ledStrip.begin();    
     
-    setColor("0");
+    ledStrip.setPixelColor(1, 0);
+    ledStrip.setPixelColor(2, 0);
     
     ledStrip.show(); 
 }    

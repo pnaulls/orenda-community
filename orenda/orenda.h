@@ -33,6 +33,7 @@ typedef enum {
 
 
 typedef enum {
+   orendaStartup,
    orendaIdle,
    orendaFlush,
    orendaFillChamber,
@@ -55,6 +56,8 @@ typedef enum {
 
 
 void setState(orendaRunState state);
+
+unsigned int parseHex(String hex);
 
 void yield(void);
 
@@ -79,6 +82,8 @@ void brewDispenseStart(orendaRunState nextState);
 void brewDispense(double lcValue);
 
 void ledSetup(void);
+int ledSetColor(unsigned int num, int col);
+
 void tdsSetup(void);
 void tinkerSetup(void);
 

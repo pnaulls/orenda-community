@@ -11,11 +11,13 @@ static double tempReservoir;
 static double tempCirculate;
 static bool chamberF;
 
-orendaRunState runState = orendaIdle;
+orendaRunState runState = orendaStartup;
 
 static unsigned long lastLoop;
 
-/* This function is called once at start up ----------------------------------*/
+/**
+ * Called once at start up
+ */ 
 void setup()
 {    
     pinMode(fanPower, OUTPUT);
@@ -47,17 +49,18 @@ void setup()
 
    	Particle.function("powerOff", powerOff);
     
+    Particle.variable("tempRes", tempReservoir);
+    Particle.variable("tempCir", tempCirculate);
+    Particle.variable("chamberFull", chamberF);
+    
     flushSetup();    
-    ledSetup();
+   
     tdsSetup();
     lcSetup();
     brewSetup();
     
-    tinkerSetup();
-    
-    Particle.variable("tempRes", tempReservoir);
-    Particle.variable("tempCir", tempCirculate);
-    Particle.variable("chamberFull", chamberF);
+//    tinkerSetup();
+    ledSetup();
     
     lastLoop = millis();
 }
@@ -65,6 +68,9 @@ void setup()
  
 static String getStateName(orendaRunState state) {
     switch (state) {
+        case orendaStartup:
+            return "startup";
+        
         case orendaIdle:
             return "idle";
     
@@ -94,6 +100,45 @@ static String getStateName(orendaRunState state) {
 }
 
 
+void setStateColors(void) {
+     switch (runState) {
+        case orendaIdle:
+            // Both red
+            ledSetColor(1, 0xff0000);
+            ledSetColor(2, 0xff0000);
+            return;
+    
+        case orendaFlush:
+            // Both blue
+            ledSetColor(1, 0x0000ff);
+            ledSetColor(2, 0x0000ff);
+            return;
+            
+        case orendaFillChamber:
+            break;
+            
+        case orendaHeat:
+            break;
+            
+        case orendaMixStart:
+            break;
+            
+        case orendaMix:
+            break;
+            
+        case orendaDispenseStart:
+            break;
+            
+        case orendaDispense:
+            break;
+    }  
+    
+    // Both green
+    ledSetColor(1, 0x00ff00);
+    ledSetColor(2, 0x00ff00);
+}
+
+
 void setState(orendaRunState state) {
     if (state == runState) return;  
     
@@ -101,10 +146,36 @@ void setState(orendaRunState state) {
   
     if (state == orendaIdle) {
         powerDown();
-    }
+    } 
+    
+    setStateColors();
     
     Particle.publish("orenda/state", getStateName(runState), 0, PRIVATE);
 }
+
+
+unsigned int parseHex(String hex) {
+    unsigned int value = 0;
+
+    for (unsigned int pos = 2; pos < hex.length(); pos++) {
+        int c = hex.charAt(pos);
+     
+        value = value << 4;
+     
+        if (c >= '0' && c <= '9') {
+            value |= c - '0';  
+        } else if (c >= 'a' && c <= 'f') {
+            value |= c - 'a' + 10;  
+        } else if (c >= 'A' && c <= 'F') {
+            value |= c - 'a' + 10;  
+        } else {
+            return value >> 4;
+        } 
+    }
+    
+    return value;
+}
+
 
 
 
@@ -153,6 +224,10 @@ void loop()
     // Reduce 2 second delay to process more often. 
     
     switch (runState) {
+        case orendaStartup:
+            setState(orendaIdle);
+            break;
+        
         case orendaIdle:
             // Nothing
             break;
