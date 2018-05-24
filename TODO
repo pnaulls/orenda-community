@@ -1,20 +1,36 @@
 
-To Do items 05/09/2018
+To Do items 05/23/2018
 
 * Block diagram of funtional units, switches, pumps and valves in machine.
-* Determine if Blynk is a good fit for both Android and iOS - No.
+
 * Determine different cleaning cycles
+  - Add default firmware cycles to this firmware flush handling. 
+
 * Improve load cell readings with averages and calibration
+  - Moved to average and median reading. Still needs work and drifts.
+
 * Build state machine for various brew cycles. 
+  - Done apart from grinding.
+
 * Determine exit and error condtions from different cycles - water not hot enough, etc.
+  - In progress
+
 * Formalize the API that I made.
 * Add basic manual control to app. 
+  - In progress
+
 * Consider programmability.
 
+* Document how the grinding is done in existing firmware 
+  - In progress
 
 Open questions:
 
 * Does the heater work on the recirculation too?  There's implication of a thermal exchange in the patent. 
 * Can we reduce grinding noise by adjusting the shaker speeds?
 
+
+Done
+
+* Determine if Blynk is a good fit for both Android and iOS - No.
 
