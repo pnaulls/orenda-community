@@ -1,7 +1,7 @@
 
 
 /**
- * The load cell in the Orenda is this model:
+ * The load cell in the Orenda is this model (I believe):
  *
  * https://www.robotshop.com/en/micro-load-cell-5-kg.html
  * 

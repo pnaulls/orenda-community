@@ -96,3 +96,8 @@ void lcSetTare(double tareValue = 0.0);
 long lcRead(bool setTare = false, bool raw = false);
 
 
+int recircControl(int recircNum, bool recirculate);
+void recircSetup(void);
+
+
+

@@ -164,15 +164,17 @@ void brewMix(double lcValue) {
  */ 
 
 void brewDispenseStart(orendaRunState nextState) {
-    digitalWrite(recircBrew, HIGH);  // Recirculate brew chamber off
-    digitalWrite(pump3, HIGH);
+  
+  recircControl(recircBrew, false); // Recirculate brew chamber off
+  
+  digitalWrite(pump3, HIGH);
     
-    // Load cell varies by temperature.  Reset here.
-    //lcSetTare(targetMixWeight);
+  // Load cell varies by temperature.  Reset here.
+  //lcSetTare(targetMixWeight);
     
-    setState(nextState);
+  setState(nextState);
     
-    brewTimer = millis();
+  brewTimer = millis();
 }
 
 

@@ -42,16 +42,14 @@ void setup()
    	pinMode(heater, OUTPUT);
    	Particle.function("heater", heaterControl);
    	
-   	pinMode(recircBrew, OUTPUT);
-    pinMode(recircRes,  OUTPUT);
-    Particle.function("recirculate", recircControl);
-   	
 
    	Particle.function("powerOff", powerOff);
     
     Particle.variable("tempRes", tempReservoir);
     Particle.variable("tempCir", tempCirculate);
     Particle.variable("chamberFull", chamberF);
+    
+    recircSetup();
     
     flushSetup();    
    
@@ -323,31 +321,6 @@ int heaterControl(String command) {
 }
 
 
-int recircControl(String command) {
-    int comma = command.indexOf(",");
-    
-    if (comma == -1) return -1;
-    
-    String name = command.substring(0, comma);
-    String value = command.substring(comma + 1);
-    
-    int recircNum;
-    
-    if (name == "1") 
-        recircNum = recircRes;
-    else if (name == "2")
-        recircNum = recircBrew;
-    else
-        return -2;
-        
-    int power = parsePower(value);
-    
-    if (power == -1) return -3;
-        
-    digitalWrite(recircNum, !power);
-    return 1;
-}
-
 
 
  
@@ -436,9 +409,9 @@ int motorControl(String command) {
 void heaterAndPumpsOff(void) {
     heaterAction(false);    
     
-    digitalWrite(recircBrew, HIGH);  // Recirculate brew chamber off
-    digitalWrite(recircRes,  HIGH);  // Recirculate reservoir off
-     
+    recircControl(recircBrew, false); // Recirculate brew chamber off
+    recircControl(recircRes,  false); // Recirculate reservoir off
+    
     digitalWrite(pump1, LOW);
     digitalWrite(pump2, LOW);
     digitalWrite(pump3, LOW);
