@@ -17,7 +17,7 @@ static Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
 
 int ledSetColor(unsigned int led, int col) {
    
-  if (led == 0) {
+  if (led == 1) {
     // System LED
         
     if (col == -1) {
@@ -29,7 +29,7 @@ int ledSetColor(unsigned int led, int col) {
       RGB.color(col >> 16, (col >> 8) & 0xff, col & 0xff);
     }
         
-  } else if (led == 1 || led == 2) {
+  } else if (led == 2 || led == 3) {
     ledStrip.setPixelColor(led - 1, col);
     ledStrip.show();
         
@@ -40,6 +40,22 @@ int ledSetColor(unsigned int led, int col) {
   return 0;  
 }
 
+
+/**
+ * Set LED colors.  
+ * 
+ * Note that LED 1 is the system LED, and setting a value
+ * will override the default LED handling including the normal
+ * "breathing".  This might be useful for the app to set this
+ * for users who don't like this.  Set to -1 to return to the
+ * system mode.
+ * 
+ * LEDs 2 and 3 are the same model and are brighter than LED 1
+ * 
+ * The colors are in RGB format, and can get decimal or hex.
+ * 
+ * 2,0xff00ff - LED 2 to magenta. 
+ */
 
 
 static int setColor(String command) {
