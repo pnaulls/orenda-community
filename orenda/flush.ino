@@ -13,7 +13,7 @@
 #include "orenda.h"
 
 
-static bool neverSawWater = true; // Never saw the water marker
+static bool neverSawWater = true;  // Never saw the water marker
 static bool pump1Finished = false; // No more water from reservior
 
 static lcDirection direction = lcDirectionUnknown;
@@ -24,10 +24,10 @@ static double lcLastValue = 0;
 
 
 void flushSetup() {
-   Particle.function("flushWater", flushWater);
+   Particle.function("flushWater", flushWaterCommand);
 }
 
-static int flushWater(String command) {
+static int flushWaterCommand(String command) {
     int power = parsePower(command);
     
     if (power == -1) return -1;
@@ -62,6 +62,7 @@ void flushProcess(double lcValue, bool chamberF) {
   
   Particle.publish("flush/chamber", chamberF ? "full" : "empty");
   
+  // TODO: Move this to main loop
   if ((lcLastValue - lcValue) > lcThreshold) {
       // Decreasing
       direction = lcDirectionDown;
@@ -103,8 +104,8 @@ void flushProcess(double lcValue, bool chamberF) {
          Particle.publish("flush/pump1", "water again", 0, PRIVATE);
       }
       
-  } else {
-      // Run for at least 40 seconds.  
+  } else if (!pump1Finished) {
+      // Run for at least 40 seconds since water was last seen, then indicate pump1 is finished  
             
       if ((now - lastWater) > (40 * 1000)) {
          // Expired
@@ -121,7 +122,7 @@ void flushProcess(double lcValue, bool chamberF) {
   // Run pump2 if we saw water in the last 40 seconds, and the load cell is not 
   // increasing
   
-  if ((direction != lcDirectionUp) && (now - lastWater) < (40 * 1000)) {
+  if ((direction != lcDirectionUp) && !pump1Finished) {
       //Particle.publish("flush/on2/lastWater", String(now - lastWater), 0, PRIVATE); 
       digitalWrite(pump2, HIGH);  
       lastPump2 = now;
@@ -132,6 +133,13 @@ void flushProcess(double lcValue, bool chamberF) {
   
   
   // Consider finish
+  
+  // Finished when:
+  //   No water in chamber
+  //   Load cell reading is staying the same for at least 8 seconds. 
+  //   It's been 8 seconds since pump2 turned off
+  //   Pump 1 has finished
+  
   if (!chamberF && direction == lcDirectionEven && pump1Finished) {
      if (((now - lastEven) > 8000) && ((now - lastPump2) > 8000)) {
         Particle.publish("flush/finish", "flush complete");
