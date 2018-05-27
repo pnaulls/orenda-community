@@ -120,7 +120,8 @@ void brewHeat(bool chamberF, double temperature) {
 
 void brewMixStart() {
     // Tare before mixing
-    lcRead(true);
+    lcDirection direction;
+    lcRead(direction, true);
     brewTimer = millis();
     
     setState(orendaMix);
@@ -180,80 +181,80 @@ void brewDispenseStart(orendaRunState nextState) {
 
 void brewDispense(double lcValue) {
 
-    long now = millis();
-    Particle.publish("brew", "dispense: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);
-    
-    if (lcValue <= 10) {
-        Particle.publish("brew", "dispense complete", 0, PRIVATE);
-        digitalWrite(pump3, LOW);   
-        setState(orendaIdle);
-        return;
-    }
-    
-    // TODO: Also check that weight is decreasing
-    
+  long now = millis();
+  Particle.publish("brew", "dispense: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);
+  
+  if (lcValue <= 10) {
+    Particle.publish("brew", "dispense complete", 0, PRIVATE);
+    digitalWrite(pump3, LOW);   
+    setState(orendaIdle);
+    return;
+  }
+  
+  // TODO: Also check that weight is decreasing
+  
    
-    
-    if (now - brewTimer >= (pump3time * 1000)) {
-        Particle.publish("brew", "dispense timeout: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);
-        digitalWrite(pump3, LOW);
-        setState(orendaIdle);
-        return;
-    }
+  
+  if (now - brewTimer >= (pump3time * 1000)) {
+    Particle.publish("brew", "dispense timeout: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);
+    digitalWrite(pump3, LOW);
+    setState(orendaIdle);
+    return;
+  }
 }
 
 
 
 
 static int brewControl(String command) {
-    int comma = command.indexOf(",");
-    String brewOp;
-    unsigned int size = 350;
+  int comma = command.indexOf(",");
+  String brewOp;
+  unsigned int size = 350;
+  
+  if (comma == -1) {
+    brewOp = command;
+  } else {
+    brewOp = command.substring(0, comma);
     
-    if (comma == -1) {
-        brewOp = command;
-    } else {
-        brewOp = command.substring(0, comma);
-        
-        String sizeCommand = command.substring(comma + 1);
-        if (sizeCommand.substring(0, 5) == "size=") {
-            size = sizeCommand.substring(5).toInt();
-            
-            if (size < 100 || size > 350) {
-                return -2;
-            }            
-        }
+    String sizeCommand = command.substring(comma + 1);
+    if (sizeCommand.substring(0, 5) == "size=") {
+      size = sizeCommand.substring(5).toInt();
+      
+      if (size < 100 || size > 350) {
+        return -2;
+      }      
     }
+  }
+  
+  
+  brewTimer = millis();
+  
+  // Proportion of nominal 350ml cup.
+  double proportion = (double)size / 350.0;
+  
+  pump1time = pump1hot; 
+  pump2time = pump2hot * proportion;
+  pump3time = pump3hot * proportion;
+  
+  targetMixWeight = size;
+  
+  if (brewOp == "heat") {
+    nextBrewState = orendaIdle;
+    setState(orendaFillChamber);
+    return 1;
     
+  } else if (brewOp == "simple") {
+    nextBrewState = orendaMixStart;
+    setState(orendaFillChamber);
+    return 1;
     
-    brewTimer = millis();
-    
-    // Proportion of nominal 350ml cup.
-    double proportion = (double)size / 350.0;
-    
-    pump1time = pump1hot; 
-    pump2time = pump2hot * proportion;
-    pump3time = pump3hot * proportion;
-    
-    targetMixWeight = size;
-    
-    if (brewOp == "heat") {
-        nextBrewState = orendaIdle;
-        setState(orendaFillChamber);
-        return 1;
-        
-    } else if (brewOp == "simple") {
-        nextBrewState = orendaMixStart;
-        setState(orendaFillChamber);
-        return 1;
-        
-    } else if (brewOp == "dispense") {
-        brewDispenseStart(orendaDispense);
-        return 1;
-    }
-    
-    
-    return -1;
+  } else if (brewOp == "dispense") {
+    brewDispenseStart(orendaDispense);
+    return 1;
+  }
+  
+  
+  return -1;
 }
 
 

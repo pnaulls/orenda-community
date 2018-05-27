@@ -37,7 +37,7 @@
 static double baseTare;
 static double tare;
 static double fourFiftyReading;
-static int gain = 3;  // channel A, gain factor 128
+static unsigned int gain = 3;  // channel A, gain factor 128
 
 
 // Sample code suggests 5-20 times to get an average reading,
@@ -62,7 +62,8 @@ void lcSetup(void) {
   
   // Set_gain
   digitalWrite(lcCLK, LOW);
-  lcRead();
+  lcDirection direction;
+  lcRead(direction);
   
   Particle.function("loadCell", loadCell);   	
   Particle.function("setTare", setTareCommand);  
@@ -79,35 +80,35 @@ static long lcReadSingle(void) {
   // wait for the chip to become ready
   while (!lcIsReady()) {
     // Will do nothing on Arduino but prevent resets of ESP8266 (Watchdog Issue)
-		yield();
-	}
+    yield();
+  }
 
-	unsigned long value = 0;
-	uint8_t data[3] = { 0 };
-	uint8_t filler = 0x00;
+  unsigned long value = 0;
+  uint8_t data[3] = { 0 };
+  uint8_t filler = 0x00;
 
-	// Pulse the clock pin 24 times to read the data
-	data[2] = shiftIn(lcDAT, lcCLK, MSBFIRST);
-	data[1] = shiftIn(lcDAT, lcCLK, MSBFIRST);
-	data[0] = shiftIn(lcDAT, lcCLK, MSBFIRST);
+  // Pulse the clock pin 24 times to read the data
+  data[2] = shiftIn(lcDAT, lcCLK, MSBFIRST);
+  data[1] = shiftIn(lcDAT, lcCLK, MSBFIRST);
+  data[0] = shiftIn(lcDAT, lcCLK, MSBFIRST);
 
-	// set the channel and the gain factor for the next reading using the clock pin
-	for (unsigned int i = 0; i < gain; i++) {
-		digitalWrite(lcCLK, HIGH);
-		digitalWrite(lcCLK, LOW);
-	}
+  // set the channel and the gain factor for the next reading using the clock pin
+  for (unsigned int i = 0; i < gain; i++) {
+    digitalWrite(lcCLK, HIGH);
+    digitalWrite(lcCLK, LOW);
+  }
 
-	// Replicate the most significant bit to pad out a 32-bit signed integer
-	if (data[2] & 0x80) {
-		filler = 0xFF;
-	} else {
-		filler = 0x00;
-	}
+  // Replicate the most significant bit to pad out a 32-bit signed integer
+  if (data[2] & 0x80) {
+    filler = 0xFF;
+  } else {
+    filler = 0x00;
+  }
 
-	// Construct a 32-bit signed integer
-	value = (filler) << 24 | ((unsigned long)data[2] << 16) | ((unsigned long)data[1] << 8) | (unsigned long)data[0];
+  // Construct a 32-bit signed integer
+  value = (filler) << 24 | ((unsigned long)data[2] << 16) | ((unsigned long)data[1] << 8) | (unsigned long)data[0];
 
-	return (long)value;
+  return (long)value;
 }
 
 
@@ -122,11 +123,11 @@ void lcSetTare(double tareValue) {
 
 
 int setTareCommand(String command) {
-   int value = command.toInt();
+  int value = command.toInt();
    
-   lcSetTare(value);
+  lcSetTare(value);
    
-   return 1;
+  return 1;
 }
 
 
@@ -136,8 +137,25 @@ int setTareCommand(String command) {
  * This will filter out any occasional bad reads.
  */
 
+static double lcLastValue = 0;
 
-long lcRead(bool setTare, bool raw) {
+String lcDirectionName(lcDirection direction) {
+   switch (direction) {
+     case lcDirectionDown:
+       return "down";
+      
+     case lcDirectionEven:
+       return "even";
+        
+     case lcDirectionUp:
+       return "up"; 
+   }
+   
+   return "unknown";
+}
+
+
+long lcRead(lcDirection &direction, bool setTare, bool raw) {
   double readings[numReads];
   
   for (int reading = 0; reading < numReads; reading++) {
@@ -165,11 +183,34 @@ long lcRead(bool setTare, bool raw) {
   double value = (readings[middle - 1] + readings[middle] + readings[middle + 1]) / 3;
   
   if (raw) return value;
+
+  // Scale to raw value
+  double thresholdScale = (lcThreshold / 450.0) * (fourFiftyReading - baseTare); 
+  
+  if ((lcLastValue - value) > thresholdScale) {
+    // Decreasing
+    direction = lcDirectionDown;
+    // Reset comparison
+    lcLastValue = value;
+     
+  } else if ((lcLastValue - value) < -thresholdScale) {
+    // Increasing 
+    direction = lcDirectionUp;
+    // Reset comparison
+    lcLastValue = value;
+    
+  } else {
+    direction = lcDirectionEven;
+  }
+  
+  
   
   if (setTare) {
     tare = value;
     //Particle.publish("loadCell/tare", String((int)value));
   }
+  
+  
   
   value = value - tare;
   
@@ -181,7 +222,6 @@ long lcRead(bool setTare, bool raw) {
 
 
 
-
 /**
  * Command processing
  */ 
@@ -189,8 +229,9 @@ long lcRead(bool setTare, bool raw) {
 static double loadCell(String command) {
   bool setTare = (command == "tare");
   bool raw = (command == "raw");
-  
-  return lcRead(setTare, raw);
+
+  lcDirection direction;  
+  return lcRead(direction, setTare, raw);
 }
 
 

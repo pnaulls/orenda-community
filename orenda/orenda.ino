@@ -26,6 +26,8 @@ static bool chamberF;
 // Current state in state machine.
 orendaRunState runState = orendaStartup;
 
+
+
 // Main loop timer
 static unsigned long lastLoop;
 
@@ -231,7 +233,6 @@ void loop()
 {
   unsigned int freq = (runState == orendaIdle) ? 10000 : 2000;
   unsigned long now = millis();
-  double lcValue;
   
   if (now - lastLoop > freq) {
     tempReservoir = readTemp(tempRes);
@@ -244,7 +245,8 @@ void loop()
     return;
   }
   
-  lcValue = lcRead();
+  lcDirection direction;
+  double lcValue = lcRead(direction);
   
   // TODO: 
   // Reduce polling during idle state, and turn 
@@ -263,7 +265,7 @@ void loop()
       break;
   
     case orendaFlush:
-      flushProcess(lcValue, chamberF);
+      flushProcess(lcValue, direction, chamberF);
       break;
       
     case orendaFillChamber:

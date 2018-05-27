@@ -89,11 +89,12 @@ void tinkerSetup(void);
 
 
 void flushSetup(void);
-void flushProcess(double lcValue, bool chamberF);
+void flushProcess(double lcValue, lcDirection direction, bool chamberF);
 
 void lcSetup(void);
 void lcSetTare(double tareValue = 0.0);
-long lcRead(bool setTare = false, bool raw = false);
+long lcRead(lcDirection &direction, bool setTare = false, bool raw = false);
+String lcDirectionName(lcDirection direction);
 
 
 int recircControl(int recircNum, bool recirculate);
