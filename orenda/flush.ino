@@ -43,7 +43,8 @@ static int flushWaterCommand(String command) {
   heaterAndPumpsOff();
   neverSawWater = true;
   lastWater = lastEven = lastPump2 = millis();
-     
+  pump1Finished = false;   
+  
   setState(orendaFlush);
     
   return 1;
