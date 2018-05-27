@@ -26,47 +26,47 @@
 
 
 void tdsSetup(void) {
-    pinMode(tds, INPUT);
-    pinMode(tdsEnable, OUTPUT);
-    digitalWrite(tdsEnable, HIGH);
-    
-    Particle.function("tds", getTDS);    
-    
+  pinMode(tds, INPUT);
+  pinMode(tdsEnable, OUTPUT);
+  digitalWrite(tdsEnable, HIGH);
+  
+  Particle.function("tds", getTDS);  
+  
 }
 
 
 
 static double readTDS(void) {
-    int total = 0;
-    int runs = 5;
-    int direction = LOW;
+  int total = 0;
+  int runs = 5;
+  int direction = LOW;
+  
+  for (int count = 0; count < runs; count++) {
+    int value = pulseIn(tds, direction);
     
-    for (int count = 0; count < runs; count++) {
-        int value = pulseIn(tds, direction);
-        
-        //String message = "count: " + String(count) + " value : " + String(value);        
-        //Particle.publish("tds", message);
-        
-        // Definitely no water, otherwise check over average
-        if (value > 120) return value;
-        
-        // Timeout
-        // Zero here indicates it has been disabled, D5 has been set low.
-        if (value >= 500 || value == 0) return -2;
-        
-        total += value;
-    }
+    //String message = "count: " + String(count) + " value : " + String(value);    
+    //Particle.publish("tds", message);
     
+    // Definitely no water, otherwise check over average
+    if (value > 120) return value;
+    
+    // Timeout
+    // Zero here indicates it has been disabled, D5 has been set low.
+    if (value >= 500 || value == 0) return -2;
+    
+    total += value;
+  }
+  
  //   String message = "min:" + String(min) + " max: " + String(max);
  //   Particle.publish("tds", message);
-    
-    return (double)total / runs;
+  
+  return (double)total / runs;
 }
 
 
 int getTDS(String command) {
   double value = readTDS();  
-    
+  
   // Indicate no water
   if (value > 97) return -1;
   

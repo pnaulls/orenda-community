@@ -7,7 +7,7 @@
  * 
  * It's interfaced using the Load Cell Amplifier HX711:
  *
- *  https://learn.sparkfun.com/tutorials/load-cell-amplifier-hx711-breakout-hookup-guide
+ * https://learn.sparkfun.com/tutorials/load-cell-amplifier-hx711-breakout-hookup-guide
  */
 
 
@@ -46,38 +46,39 @@ static int gain = 3;  // channel A, gain factor 128
 
 
 void lcSetup(void) {
-    // Begin 
-    pinMode(lcCLK, OUTPUT);
-    pinMode(lcDAT, INPUT);
-    
-    if (gain == 1) {
-        baseTare         = 29369;
-        fourFiftyReading = 73903; 
-    } else if (gain == 3) {
-        baseTare         = 12983;
-        fourFiftyReading = 34740;
-    }
-    
-    tare = baseTare;
-    
-    // Set_gain
-    digitalWrite(lcCLK, LOW);
-    lcRead();
-    
-    Particle.function("loadCell", loadCell);   	
+  // Begin 
+  pinMode(lcCLK, OUTPUT);
+  pinMode(lcDAT, INPUT);
+  
+  if (gain == 1) {
+    baseTare         = 29369;
+    fourFiftyReading = 73903; 
+  } else if (gain == 3) {
+    baseTare         = 12983;
+    fourFiftyReading = 34740;
+  }
+  
+  tare = baseTare;
+  
+  // Set_gain
+  digitalWrite(lcCLK, LOW);
+  lcRead();
+  
+  Particle.function("loadCell", loadCell);   	
+  Particle.function("setTare", setTareCommand);  
 }
 
 
 static bool lcIsReady(void) {
-    return digitalRead(lcDAT) == LOW;
+  return digitalRead(lcDAT) == LOW;
 }
 
 
 
 static long lcReadSingle(void) {
-    // wait for the chip to become ready
-    while (!lcIsReady()) {
-        // Will do nothing on Arduino but prevent resets of ESP8266 (Watchdog Issue)
+  // wait for the chip to become ready
+  while (!lcIsReady()) {
+    // Will do nothing on Arduino but prevent resets of ESP8266 (Watchdog Issue)
 		yield();
 	}
 
@@ -111,9 +112,21 @@ static long lcReadSingle(void) {
 
 
 void lcSetTare(double tareValue) {
-   double newTare = (tareValue / 450.0) * (fourFiftyReading - baseTare); 
+  double newTare = (tareValue / 450.0) * (fourFiftyReading - baseTare) + baseTare; 
+  
+  //value = ((value - tare) * 450.0) / (fourFiftyReading - baseTare); 
+  
+  
+  tare = newTare;
+}
+
+
+int setTareCommand(String command) {
+   int value = command.toInt();
    
-   tare = newTare;
+   lcSetTare(value);
+   
+   return 1;
 }
 
 
@@ -125,45 +138,45 @@ void lcSetTare(double tareValue) {
 
 
 long lcRead(bool setTare, bool raw) {
-    double readings[numReads];
-    
-    for (int reading = 0; reading < numReads; reading++) {
-        double lcValue = lcReadSingle();
-        bool shifted = false;
+  double readings[numReads];
+  
+  for (int reading = 0; reading < numReads; reading++) {
+    double lcValue = lcReadSingle();
+    bool shifted = false;
 
-        // Low to high, shift values if this value is less than
-        // Current one
-        for (int check = 0; check < reading; check++) {
-           if (lcValue >= readings[check]) continue;
-           
-           for (int move = reading; move > check; move--) {
-              readings[move] = readings[move - 1];   
-           }
-           readings[check] = lcValue;
-           shifted = true;
-           break;
-        }
-        
-        if (!shifted) readings[reading] = lcValue;
+    // Low to high, shift values if this value is less than
+    // Current one
+    for (int check = 0; check < reading; check++) {
+       if (lcValue >= readings[check]) continue;
+       
+       for (int move = reading; move > check; move--) {
+        readings[move] = readings[move - 1];   
+       }
+       readings[check] = lcValue;
+       shifted = true;
+       break;
     }
     
-    int middle = numReads / 2 + 1;  
-    // Middle 3 readings
-    double value = (readings[middle - 1] + readings[middle] + readings[middle + 1]) / 3;
-    
-    if (raw) return value;
-    
-    if (setTare) {
-        tare = value;
-      //Particle.publish("loadCell/tare", String((int)value));
-    }
-    
-    value = value - tare;
-    
-    value = (value * 450.0) / (fourFiftyReading - baseTare); 
-    //Particle.publish("loadCell", String(round(value * 10) / 10));
-    
-    return round(value * 10) / 10;  
+    if (!shifted) readings[reading] = lcValue;
+  }
+  
+  int middle = numReads / 2 + 1;  
+  // Middle 3 readings
+  double value = (readings[middle - 1] + readings[middle] + readings[middle + 1]) / 3;
+  
+  if (raw) return value;
+  
+  if (setTare) {
+    tare = value;
+    //Particle.publish("loadCell/tare", String((int)value));
+  }
+  
+  value = value - tare;
+  
+  value = (value * 450.0) / (fourFiftyReading - baseTare); 
+  //Particle.publish("loadCell", String(round(value * 10) / 10));
+  
+  return round(value * 10) / 10;  
 }
 
 
@@ -174,10 +187,10 @@ long lcRead(bool setTare, bool raw) {
  */ 
 
 static double loadCell(String command) {
-    bool setTare = (command == "tare");
-    bool raw = (command == "raw");
-    
-    return lcRead(setTare, raw);
+  bool setTare = (command == "tare");
+  bool raw = (command == "raw");
+  
+  return lcRead(setTare, raw);
 }
 
 

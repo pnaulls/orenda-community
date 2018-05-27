@@ -11,8 +11,12 @@
 
 #define PIXEL_COUNT 2
 #define PIXEL_TYPE WS2812B
+//#define PIXEL_TYPE SK6812RGBW
 
 static Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
+
+static int led2col = 0;
+static int led3col = 0;
 
 
 int ledSetColor(unsigned int led, int col) {
@@ -29,8 +33,14 @@ int ledSetColor(unsigned int led, int col) {
       RGB.color(col >> 16, (col >> 8) & 0xff, col & 0xff);
     }
         
-  } else if (led == 2 || led == 3) {
-    ledStrip.setPixelColor(led - 1, col);
+  } else if (led == 2) {
+    ledStrip.setPixelColor(0, led2col = col);
+    ledStrip.setPixelColor(1, led3col);
+    ledStrip.show();
+    
+  } else if (led == 3) {
+    ledStrip.setPixelColor(0, led2col);
+    ledStrip.setPixelColor(1, led3col = col);
     ledStrip.show();
         
   } else {
@@ -59,35 +69,35 @@ int ledSetColor(unsigned int led, int col) {
 
 
 static int setColor(String command) {
-    int comma = command.indexOf(",");
-    
-    if (comma == -1) return -1;
-    
-    String lNum  = command.substring(0, comma);
-    String value = command.substring(comma + 1);
+  int comma = command.indexOf(",");
+  
+  if (comma == -1) return -1;
+  
+  String lNum  = command.substring(0, comma);
+  String value = command.substring(comma + 1);
 
-    int led = lNum.toInt();    
-    int col;
-    
-    if (value.substring(0, 2) == "0x") {
-      col = parseHex(value);
-    } else {
-      col = value.toInt();    
-    }
+  int led = lNum.toInt();  
+  int col;
+  
+  if (value.substring(0, 2) == "0x") {
+    col = parseHex(value);
+  } else {
+    col = value.toInt();  
+  }
 
-    return ledSetColor(led, col);
+  return ledSetColor(led, col);
 }
 
 
 void ledSetup(void) {
-    Particle.function("setLEDs", setColor);  
-    ledStrip.begin();    
-    
-    ledStrip.setPixelColor(1, 0);
-    ledStrip.setPixelColor(2, 0);
-    
-    ledStrip.show(); 
-}    
+  Particle.function("setLEDs", setColor);  
+  ledStrip.begin();  
+  
+  ledStrip.setPixelColor(1, 0);
+  ledStrip.setPixelColor(2, 0);
+  
+  ledStrip.show(); 
+}  
 
 
 

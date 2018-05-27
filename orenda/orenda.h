@@ -1,47 +1,47 @@
 
 
 typedef enum {
-   fanPower     = 0,
-   recircBrew   = 1,   // Relay 1
-   brewButton   = 2,
-   chamberFull  = 3,
-   recircRes    = 4,   // Relay 2 - Relates to pump1.
-   tdsEnable    = 5,
+  fanPower     = 0,
+  recircBrew   = 1,   // Relay 1
+  brewButton   = 2,
+  chamberFull  = 3,
+  recircRes    = 4,   // Relay 2 - Relates to pump1.
+  tdsEnable    = 5,
    
-   tempRes     = 10,
-   pump1       = 11,   // Reservoir
-   tempCir     = 12,   // Temperature in recirculation
-   shaker1     = 13,   // Top shaker 
-   pump2       = 14,   // Top pump
-   heater      = 15,   // Relay 3
-   ledNP       = 16,   // LED 2/3 control, NeoPixel
-   buttonClean = 17,   
+  tempRes     = 10,
+  pump1       = 11,   // Reservoir
+  tempCir     = 12,   // Temperature in recirculation
+  shaker1     = 13,   // Top shaker 
+  pump2       = 14,   // Top pump
+  heater      = 15,   // Relay 3
+  ledNP       = 16,   // LED 2/3 control, NeoPixel
+  buttonClean = 17,   
    
-   ledR        = 21,   // LED 1/System LED control
-   ledG        = 22, 
-   ledB        = 23,
+  ledR        = 21,   // LED 1/System LED control
+  ledG        = 22, 
+  ledB        = 23,
    
-   shaker2     = 24,   // Bottom shaker
-   tds         = 25,   // TDS frequency count
-   grinder     = 26,   // Grinder motor
-   pump3       = 27,   // Dispense or recirculate
+  shaker2     = 24,   // Bottom shaker
+  tds         = 25,   // TDS frequency count
+  grinder     = 26,   // Grinder motor
+  pump3       = 27,   // Dispense or recirculate
    
-   lcCLK       = 28,   // Load cell clock
-   lcDAT       = 29,   // Load cell data
+  lcCLK       = 28,   // Load cell clock
+  lcDAT       = 29,   // Load cell data
  
 } orendaPins;
 
 
 typedef enum {
-   orendaStartup,
-   orendaIdle,
-   orendaFlush,
-   orendaFillChamber,
-   orendaHeat,
-   orendaMixStart,
-   orendaMix,
-   orendaDispenseStart,
-   orendaDispense,
+  orendaStartup,
+  orendaIdle,
+  orendaFlush,
+  orendaFillChamber,
+  orendaHeat,
+  orendaMixStart,
+  orendaMix,
+  orendaDispenseStart,
+  orendaDispense,
 } orendaRunState;
 
 

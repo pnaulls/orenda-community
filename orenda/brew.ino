@@ -170,7 +170,7 @@ void brewDispenseStart(orendaRunState nextState) {
   digitalWrite(pump3, HIGH);
     
   // Load cell varies by temperature.  Reset here.
-  //lcSetTare(targetMixWeight);
+  lcSetTare(targetMixWeight);
     
   setState(nextState);
     

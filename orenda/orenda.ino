@@ -134,14 +134,14 @@ void setStateColors(void) {
    switch (runState) {
     case orendaIdle:
       // Both red
-      ledSetColor(1, 0xff0000);
       ledSetColor(2, 0xff0000);
+      ledSetColor(3, 0xff0000);
       return;
   
     case orendaFlush:
       // Both blue
-      ledSetColor(1, 0x0000ff);
       ledSetColor(2, 0x0000ff);
+      ledSetColor(3, 0x0000ff);
       return;
       
     case orendaFillChamber:
@@ -164,8 +164,8 @@ void setStateColors(void) {
   }  
   
   // Both green
-  ledSetColor(1, 0x00ff00);
   ledSetColor(2, 0x00ff00);
+  ledSetColor(3, 0x00ff00);
 }
 
 
