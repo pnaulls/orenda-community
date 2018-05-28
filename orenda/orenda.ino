@@ -53,13 +53,7 @@ void setup()
   pinMode(pump3, OUTPUT);
   Particle.function("pump", pumpCommand);
    	
-  // Grinder and shaker setup
-  pinMode(grinder, OUTPUT);
-  Particle.function("grinder", grinderCommand);
-   	
-  pinMode(shaker1, OUTPUT);
-  pinMode(shaker2, OUTPUT);
-  Particle.function("shaker", shakerCommand);
+  
   pinMode(heater, OUTPUT);
   Particle.function("heater", heaterCommand);
    	
@@ -72,6 +66,8 @@ void setup()
   Particle.variable("chamberFull", chamberF);
   
   // Individual method setup
+  grinderSetup();
+  
   recircSetup();
   flushSetup();  
   tdsSetup();
@@ -319,14 +315,7 @@ int fanCommand(String command) {
   return 1;
 }
 
-int grinderCommand(String command) {
-  int power = parsePower(command);
-  
-  if (power == -1) return -1;
-  
-  digitalWrite(grinder, power);
-  return 1;
-}
+
 
 
 /**
@@ -416,31 +405,6 @@ int pumpCommand(String command) {
 }
   
   
-int shakerCommand(String command) {
-  int comma = command.indexOf(",");
-  
-  if (comma == -1) return -1;
-  
-  String name = command.substring(0, comma);
-  String value = command.substring(comma + 1);
-  
-  int shakerNum;
-  
-  if (name == "1") 
-    shakerNum = shaker1;
-  else if (name == "2")
-    shakerNum = shaker2;
-  else
-    return -2;
-    
-  int power = parsePower(value);
-  
-  if (power == -1) return -3;
-    
-  digitalWrite(shakerNum, power);
-  
-  return 1; 
-}  
 
 
 /**

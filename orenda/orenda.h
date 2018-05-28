@@ -100,5 +100,8 @@ String lcDirectionName(lcDirection direction);
 int recircControl(int recircNum, bool recirculate);
 void recircSetup(void);
 
+void grinderSetup(void);
+void grinderAndShakerControl(bool on);
+
 
 
