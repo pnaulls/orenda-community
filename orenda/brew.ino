@@ -36,7 +36,8 @@ static const int pump1hot  = 60;
 // Brew/Mix chamber - 350ml 
 static const int pump2room = 28;
 static const int pump2hot  = 60;
-static int targetMixWeight  = 350;  // Target weight in load cell
+static int targetMixWeight = 350;  // Target weight in load cell
+static unsigned long targetMixWait   = 30;   // Time to wait before dispense 
 
 // Dispense - 350ml
 static const int pump3room = 50;
@@ -182,15 +183,15 @@ static void mixWaitStart(void) {
 
 
 void brewWait(unsigned long now, double lcValue, lcDirection direction) {
-  if ((now - waitStart) >= 60 * 1000) {
-    Particle.publish("brew", "wait complete " + String(lcValue));
+  if ((now - waitStart) >= targetMixWait * 1000) {
+    Particle.publish("brew", "wait complete " + String(lcValue), 0, PRIVATE);
     setState(orendaDispenseStart);
     return;
   }
   
   // Report every 2 seconds
   if ((now - waitStartUpdate) >= 2 * 1000) {
-    Particle.publish("brew", "waiting " + String(lcValue));
+    Particle.publish("brew", "waiting " + String(lcValue), 0, PRIVATE);
     waitStartUpdate = now;
   }
 }
@@ -262,20 +263,32 @@ static int brewControl(String command) {
   int comma = command.indexOf(",");
   String brewOp;
   unsigned int size = 350;
+  unsigned int waitTime = 30;
   
   if (comma == -1) {
     brewOp = command;
   } else {
     brewOp = command.substring(0, comma);
     
-    String sizeCommand = command.substring(comma + 1);
-    if (sizeCommand.substring(0, 5) == "size=") {
-      size = sizeCommand.substring(5).toInt();
+    do {
+      String parameter = command.substring(comma + 1);
       
-      if (size < 100 || size > 350) {
-        return -2;
-      }      
-    }
+      if (parameter.substring(0, 5) == "size=") {
+        size = parameter.substring(5).toInt();
+      
+        if (size < 100 || size > 350) {
+          return -2;
+        }
+      } else if (parameter.substring(0, 5) == "wait=") {
+        waitTime = parameter.substring(5).toInt();
+      
+        if (waitTime < 0 || waitTime > 300) {
+          return -2;
+        }  
+      }
+      
+      comma = command.indexOf(",", comma + 1);
+    } while (comma != -1);
   }
   
   
@@ -289,6 +302,7 @@ static int brewControl(String command) {
   pump3time = pump3hot * proportion;
   
   targetMixWeight = size;
+  targetMixWait   = waitTime;
   
   if (brewOp == "heat") {
     nextBrewState = orendaIdle;
