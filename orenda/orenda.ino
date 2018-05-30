@@ -74,8 +74,9 @@ void setup()
   lcSetup();
   brewSetup();
   ledSetup();
+  cleanSetup();
   
-  tinkerSetup();
+//  tinkerSetup();
 
   
   lastLoop = millis();
@@ -116,7 +117,13 @@ static String getStateName(orendaRunState state) {
       return "dispense start";
       
     case orendaDispense:
-        return "dispense";
+      return "dispense";
+        
+    case orendaClean1:
+      return "clean 1";
+      
+    case orendaClean2:
+      return "clean 2";
   }
   
   return "unknown";
@@ -288,12 +295,16 @@ void loop()
       break;
       
     case orendaDispenseStart:
-      //brewDispenseStart(orendaIdle);
       brewDispenseStart(orendaDispense);
       break;
       
     case orendaDispense:
       brewDispense(now, lcValue, direction);
+      break;
+      
+    case orendaClean1:
+    case orendaClean2:
+      cleanProcess(now);
       break;
   }
       

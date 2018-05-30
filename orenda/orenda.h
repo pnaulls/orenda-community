@@ -43,6 +43,8 @@ typedef enum {
   orendaMixWait,
   orendaDispenseStart,
   orendaDispense,
+  orendaClean1,
+  orendaClean2,
 } orendaRunState;
 
 
@@ -105,5 +107,6 @@ void recircSetup(void);
 void grinderSetup(void);
 void grinderAndShakerControl(bool on);
 
-
+void cleanSetup(void);
+void cleanProcess(unsigned int now);
 
