@@ -44,9 +44,9 @@ static const int pump3hot  = 50;
 
 
 // Calculated times depending upon temperature
-static int pump1time;
-static int pump2time;
-static int pump3time;
+static unsigned long pump1time;
+static unsigned long pump2time;
+static unsigned long pump3time;
 
 static long brewTimer;
 
@@ -72,7 +72,7 @@ void brewFill(bool chamberF) {
     long now = millis();
     
     if (now - brewTimer >= (pump1time * 1000)) {
-        setState(orendaDispenseStart);
+//        setState(orendaDispenseStart);
         
         Particle.publish("brew", "fill timeout: " + String(now - brewTimer), 0, PRIVATE);
         digitalWrite(pump1, LOW);
@@ -141,27 +141,65 @@ void brewMix(double lcValue) {
     unsigned long elapsed = now - brewTimer;
     
     if (lcValue >= targetMixWeight) {
-        setState(orendaDispenseStart);
+      Particle.publish("brew", "mix complete: " + String(lcValue) + " " + String(elapsed), 0, PRIVATE);
+      digitalWrite(pump2, LOW);
         
-        Particle.publish("brew", "mix complete: " + String(lcValue) + " " + String(elapsed), 0, PRIVATE);
-        digitalWrite(pump2, LOW);
-        return;
+      mixWaitStart();
+        
+      return;
     }
     
     // TODO: Also check that weight is increasing
     
     if (elapsed >= (pump2time * 1000)) {
-        setState(orendaDispenseStart);
+      Particle.publish("brew", "mix timeout: " + String(lcValue) + " " + String(elapsed), 0, PRIVATE);
+      digitalWrite(pump2, LOW);
         
-        Particle.publish("brew", "mix timeout: " + String(lcValue) + " " + String(elapsed), 0, PRIVATE);
-        digitalWrite(pump2, LOW);
+      mixWaitStart();
     }
 }
 
 
+/**
+ * This is an unusual state.  We are just sitting waiting for the load cell to 
+ * stabilize (30-60 seconds) due to heat.  Also, we are still brewing since the 
+ * hot water is setting with the coffee, so we need to be careful of timing here 
+ * to get a repeatable brew.
+ * 
+ * Alternatively here, we'd instead move to a recirculate state, again giving the 
+ * load cell enough time to settle due to heat. 
+ */
+
+
+static unsigned long waitStart;
+static unsigned long waitStartUpdate;
+
+static void mixWaitStart(void) {
+  setState(orendaMixWait);
+
+  waitStart = waitStartUpdate = millis();  
+}
+
+
+void brewWait(unsigned long now, double lcValue, lcDirection direction) {
+  if ((now - waitStart) >= 60 * 1000) {
+    Particle.publish("brew", "wait complete " + String(lcValue));
+    setState(orendaDispenseStart);
+    return;
+  }
+  
+  // Report every 2 seconds
+  if ((now - waitStartUpdate) >= 2 * 1000) {
+    Particle.publish("brew", "waiting " + String(lcValue));
+    waitStartUpdate = now;
+  }
+}
+ 
 
 /** 
- * Dispense to cup 
+ * Dispense to cup setup.  The assumption here is that the load cell has 
+ * stopped adjusting due to heat.   Reset the tare reading to the 
+ * target weight and then move to the dispense state.
  */ 
 
 void brewDispenseStart(orendaRunState nextState) {
@@ -172,6 +210,10 @@ void brewDispenseStart(orendaRunState nextState) {
     
   // Load cell varies by temperature.  Reset here.
   lcSetTare(targetMixWeight);
+  lcDirection direction;
+  double lcValue = lcRead(direction);
+  
+  Particle.publish("brew", "dispense start " + String(targetMixWeight) + " " + String(lcValue) , 0, PRIVATE);
     
   setState(nextState);
     
@@ -179,9 +221,20 @@ void brewDispenseStart(orendaRunState nextState) {
 }
 
 
-void brewDispense(double lcValue) {
+/**
+ * Dispense to cup.   Keep going until there's a zero reading for the load 
+ * cell (tare set above) or there's a timeout. 
+ * 
+ * After this is done, our cup of coffee is complete.
+ * 
+ * Note that as water passses through the dispenser, it appears that the load
+ * cell heats up even more, and the readings continue to climb.  So the 
+ * load cell readings here are largely for naught, and we can only rely upon
+ * time. 
+ */ 
 
-  long now = millis();
+void brewDispense(unsigned long now, double lcValue, lcDirection direction) {
+
   Particle.publish("brew", "dispense: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);
   
   if (lcValue <= 10) {
@@ -193,7 +246,6 @@ void brewDispense(double lcValue) {
   
   // TODO: Also check that weight is decreasing
   
-   
   
   if (now - brewTimer >= (pump3time * 1000)) {
     Particle.publish("brew", "dispense timeout: " + String(lcValue) + " " + String(now - brewTimer), 0, PRIVATE);

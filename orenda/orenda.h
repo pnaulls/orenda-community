@@ -40,6 +40,7 @@ typedef enum {
   orendaHeat,
   orendaMixStart,
   orendaMix,
+  orendaMixWait,
   orendaDispenseStart,
   orendaDispense,
 } orendaRunState;
@@ -78,8 +79,9 @@ void brewFill(bool chamberF);
 void brewHeat(bool chamberF, double tempReservoir);
 void brewMixStart();
 void brewMix(double lcValue);
+void brewWait(unsigned long now, double lcValue, lcDirection direction);
 void brewDispenseStart(orendaRunState nextState);
-void brewDispense(double lcValue);
+void brewDispense(unsigned long now, double lcValue, lcDirection direction);
 
 void ledSetup(void);
 int ledSetColor(unsigned int num, int col);

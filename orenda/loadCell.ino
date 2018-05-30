@@ -112,8 +112,16 @@ static long lcReadSingle(void) {
 }
 
 
+/**
+ * Set exact tare weight for this current reading.  
+ */ 
+
 void lcSetTare(double tareValue) {
-  double newTare = (tareValue / 450.0) * (fourFiftyReading - baseTare) + baseTare; 
+  lcDirection direction;
+  double current = lcRead(direction, false, true);
+//  tareValue = lcRead(direction, false, true) - tareValue;
+  
+  double newTare = current - (tareValue / 450.0) * (fourFiftyReading - baseTare); 
   
   //value = ((value - tare) * 450.0) / (fourFiftyReading - baseTare); 
   
