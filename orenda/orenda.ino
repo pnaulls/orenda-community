@@ -139,17 +139,17 @@ static String getStateName(orendaRunState state) {
  */
 
 void setStateColors(void) {
-   switch (runState) {
+  switch (runState) {
     case orendaIdle:
       // Both red
-      ledSetColor(2, 0xff0000);
       ledSetColor(3, 0xff0000);
+      ledSetColor(2, 0xff0000);
       return;
   
     case orendaFlush:
       // Both blue
-      ledSetColor(2, 0x0000ff);
       ledSetColor(3, 0x0000ff);
+      ledSetColor(2, 0x0000ff);
       return;
       
     case orendaFillChamber:
@@ -172,8 +172,8 @@ void setStateColors(void) {
   }  
   
   // Both green
-  ledSetColor(2, 0x00ff00);
   ledSetColor(3, 0x00ff00);
+  ledSetColor(2, 0x00ff00);
 }
 
 
@@ -446,17 +446,17 @@ void heaterAndPumpsOff(void) {
  */ 
 
 void powerDown(void) {
-  runState = orendaIdle;
-  
   // Turn off heater and pumps
   heaterAndPumpsOff();
   
-  // Turn off shakers
-  digitalWrite(shaker1, LOW);
-  digitalWrite(shaker2, LOW);
-  // Grinder and fan
+  // Turn off shakers/grinder
+  grinderAndShakerControl(false);
+  
+  // Fan
   digitalWrite(grinder, LOW);
   digitalWrite(fanPower, LOW);
+  
+  setState(orendaIdle);
 }
 
 

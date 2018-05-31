@@ -10,8 +10,8 @@
 
 
 #define PIXEL_COUNT 2
-#define PIXEL_TYPE WS2812B
-//#define PIXEL_TYPE SK6812RGBW
+#define PIXEL_TYPE WS2812
+//#define PIXEL_TYPE TM1803
 
 static Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
 
@@ -20,7 +20,7 @@ static int led3col = 0;
 
 
 int ledSetColor(unsigned int led, int col) {
-   
+  
   if (led == 1) {
     // System LED
         
@@ -34,20 +34,24 @@ int ledSetColor(unsigned int led, int col) {
     }
         
   } else if (led == 2) {
-    ledStrip.setPixelColor(0, led2col = col);
-    ledStrip.setPixelColor(1, led3col);
+    ledStrip.setPixelColor(0, col);
+    
     ledStrip.show();
     
   } else if (led == 3) {
-    ledStrip.setPixelColor(0, led2col);
-    ledStrip.setPixelColor(1, led3col = col);
+    //led3col = col;
+    
+    ledStrip.setPixelColor(1, col);
+    
     ledStrip.show();
         
   } else {
     return -2;
   }
     
-  return 0;  
+  delay(100);  // Seems to be needed or the other LED can become unset
+    
+  return 1;  
 }
 
 
