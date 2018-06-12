@@ -64,6 +64,16 @@ static double readTDS(void) {
 }
 
 
+/**
+ * TDS readings. 
+ * 
+ * -1 = no water
+ * -2 = no clock found, TDS is disabled
+ * 
+ * Otherwise TDS value, which is presently poorly calibrated.
+ */
+
+
 int getTDS(String command) {
   double value = readTDS();  
   

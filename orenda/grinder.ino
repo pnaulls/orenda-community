@@ -53,11 +53,21 @@ static int shakerCommand(String command) {
 
 
 static int grinderCommand(String command) {
+  if (command == "2") {
+    grinderAndShakerControl(true);
+    return 1;
+  }
+  
   int power = parsePower(command);
   
   if (power == -1) return -1;
-  
-  digitalWrite(grinder, power);
+ 
+  if (power) {
+    digitalWrite(grinder, power);
+  } else {
+    grinderAndShakerControl(false);
+  }
+    
   return 1;
 }
 
