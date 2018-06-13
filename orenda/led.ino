@@ -15,9 +15,33 @@
 
 static Adafruit_NeoPixel ledStrip(PIXEL_COUNT, ledNP, PIXEL_TYPE);
 
-static int led2col = 0;
-static int led3col = 0;
+static int led2col = -1;
+static int led3col = -1;
 
+
+/** 
+ * Set both NeoPixel LEDs at once 
+ */ 
+
+bool ledSetColors(int col1, int col2) {
+
+  if (col1 < 0 || col1 > 0xffffff || col2 < 0 || col2 > 0xffffff) return false;
+  
+  if (col1 == led2col && col2 == led3col) return true;
+  
+  ledStrip.setPixelColor(0, col1);
+  ledStrip.setPixelColor(1, col2); 
+  ledStrip.show();
+  
+  return true;
+}
+
+
+
+/**
+ * Set just one LED including the system one.  
+ * -1 on system = reset to default handlng. 
+ */ 
 
 int ledSetColor(unsigned int led, int col) {
   
@@ -34,15 +58,19 @@ int ledSetColor(unsigned int led, int col) {
     }
         
   } else if (led == 2) {
-    ledStrip.setPixelColor(0, col);
+    if (led2col == col) return 1;
     
+    led2col = col;
+    
+    ledStrip.setPixelColor(0, col);    
     ledStrip.show();
     
   } else if (led == 3) {
-    //led3col = col;
+    if (led3col == col) return 1;
+    
+    led3col = col;
     
     ledStrip.setPixelColor(1, col);
-    
     ledStrip.show();
         
   } else {

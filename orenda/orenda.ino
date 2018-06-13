@@ -135,21 +135,23 @@ static String getStateName(orendaRunState state) {
  * 
  * TODO: Add changing color handling.
  *
- * See also ledSetColor in led.ino 
+ * See also ledSetColor(s) in led.ino 
  */
 
-void setStateColors(void) {
+void setStateColors(int counter) {
   switch (runState) {
     case orendaIdle:
       // Both red
-      ledSetColor(3, 0xff0000);
-      ledSetColor(2, 0xff0000);
+      ledSetColors(0xff0000, 0xff0000);
       return;
   
     case orendaFlush:
-      // Both blue
-      ledSetColor(3, 0x0000ff);
-      ledSetColor(2, 0x0000ff);
+      // Alternate blues 
+      {
+        int blue = 255 * counter / 8;
+        
+        ledSetColors(blue, 255 - blue);
+      }
       return;
       
     case orendaFillChamber:
@@ -172,8 +174,25 @@ void setStateColors(void) {
   }  
   
   // Both green
-  ledSetColor(3, 0x00ff00);
-  ledSetColor(2, 0x00ff00);
+  ledSetColors(0x00ff00, 0x00ff00);
+}
+
+
+/**
+ * Cycle from 0-8 for colors
+ */
+
+void cycleStateColors(bool reset = false) {
+  static int counter = 0;
+  
+  if (reset) {
+    counter = 0;
+  } else {
+    counter++;
+    if (counter == 9) counter = 0;
+  }
+  
+  setStateColors(counter);
 }
 
 
@@ -186,7 +205,8 @@ void setState(orendaRunState state) {
     powerDown();
   } 
   
-  setStateColors();
+  //setStateColors();
+  cycleStateColors(true);
   
   Particle.publish("orenda/state", getStateName(runState), 0, PRIVATE);
 }
@@ -250,6 +270,8 @@ void loop()
   if (runState == orendaIdle) {
     return;
   }
+  
+  cycleStateColors();
   
   lcDirection direction;
   double lcValue = lcRead(direction);

@@ -87,6 +87,7 @@ void brewDispense(unsigned long now, double lcValue, lcDirection direction);
 
 void ledSetup(void);
 int ledSetColor(unsigned int num, int col);
+bool ledSetColors(int col1, int col2);
 
 void tdsSetup(void);
 void tinkerSetup(void);
