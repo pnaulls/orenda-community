@@ -125,8 +125,8 @@ void ledSetup(void) {
   Particle.function("setLEDs", setColor);  
   ledStrip.begin();  
   
+  ledStrip.setPixelColor(0, 0);
   ledStrip.setPixelColor(1, 0);
-  ledStrip.setPixelColor(2, 0);
   
   ledStrip.show(); 
 }  
