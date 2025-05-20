@@ -25,7 +25,7 @@ The locations of these items may be subject to change
 Community FAQ: # Missing document. 
 https://docs.google.com/document/d/1Ye3PjEkkDaWWTbqxILuNRVPRJwL5_8FpXfS1fb5Y1Qs/edit?usp=sharing
 
-Sofware/Hardware internals and prelimary design:
+Sofware/Hardware internals and prelimary design: # missing document.
 https://docs.google.com/document/d/1KW6BgGmPUzZXpz3N3v8aKIpFevz7bTDWde8sHEJ1ARI/edit?usp=sharing
 
 Orenda Offical Forums:
