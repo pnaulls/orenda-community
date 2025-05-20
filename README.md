@@ -22,7 +22,7 @@ References
 
 The locations of these items may be subject to change
 
-Community FAQ:
+Community FAQ: # Missing document. 
 https://docs.google.com/document/d/1Ye3PjEkkDaWWTbqxILuNRVPRJwL5_8FpXfS1fb5Y1Qs/edit?usp=sharing
 
 Sofware/Hardware internals and prelimary design:
